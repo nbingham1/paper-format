@@ -1,0 +1,62 @@
+@import url("chart-print.css");
+
+.ct-series-a .ct-point, .ct-series-a .ct-area {
+	stroke: #cc0000;
+	fill: #cc0000;
+}
+.ct-series-a .ct-line {
+	stroke: #cc0000;
+}
+li.ct-series-a:before {
+	background-color: #cc0000;
+	border-color: #cc0000;
+}
+
+.ct-series-b .ct-point, .ct-series-b .ct-area {
+	stroke: #ffaa00;
+	fill: #ffaa00;
+}
+.ct-series-b .ct-line {
+	stroke: #ffaa00;
+}
+li.ct-series-b:before {
+	background-color: #ffaa00;
+	border-color: #ffaa00;
+}
+
+.ct-series-c .ct-point, .ct-series-c .ct-area {
+	stroke: #ffff00;
+	fill: #ffff00;
+}
+.ct-series-c .ct-line {
+	stroke: #ffff00;
+}
+li.ct-series-c:before {
+	background-color: #ffff00;
+	border-color: #ffff00;
+}
+
+.ct-series-d .ct-point, .ct-series-d .ct-area  {
+	stroke: #00cc00;
+	fill: #00cc00;
+}
+.ct-series-d .ct-line {
+	stroke: #00cc00;
+}
+li.ct-series-d:before {
+	background-color: #00cc00;
+	border-color: #00cc00;
+}
+
+.ct-series-e .ct-point, .ct-series-e .ct-area {
+	stroke: #0000cc;
+	fill: #0000cc;
+}
+.ct-series-e .ct-line {
+	stroke: #0000cc;
+}
+li.ct-series-e:before {
+	background-color: #0000cc;
+	border-color: #0000cc;
+}
+

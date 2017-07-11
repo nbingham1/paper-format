@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IEEE Conference Proceedings Format</title>
+    <link rel="stylesheet" href="ieee-web.css">
+    <link rel="stylesheet" href="ieee-print.css" media="print">
+    <link rel="stylesheet" href="code.css">
+    <link rel="stylesheet" href="chart-web.css">
+    <link rel="stylesheet" href="chart-print.css" media="print">
+		<script src="pubcss.js"></script>
+		<script src="code.js" data-manual></script>
+		<script src="chart.js"></script>
+		<script src="figures.js"></script>
+		<script>
+window.onload = function() {
+	includeHTML()
+		.then(loadCode)
+		.then(loadChart)
+		.then(loadExampleFigure)
+		.then(formatAnchors)
+		.then(formatLinks);
+};
+</script>
+  </head>
+  <body>
+		<div class="web-only" id="banner">
+     <a class="banner button" href="https://github.com/nbingham1/paper-format/issues">Reviews</a>
+     <a class="banner button" href="https://github.com/nbingham1/paper-format">Source</a>
+     <a class="banner button" href="">Data</a>
+		</div>
+
+    <header class="col-span">
+      <h1 class="title counter-skip">Paper Title</h1>
+      <h2 class="subtitle counter-skip">Subtitle as needed</h2>
+      <div class="authors col-2">
+        <div class="author">
+          <div>Authors Name/s per 1st Affiliation</div>
+          <div>line 1: dept. name of organization</div>
+          <div>line 2: name of organization, acronyms acceptable</div>
+          <div>line 3: City, Country</div>
+          <div>line 4: e-mail address if desired</div>
+        </div>
+        <div class="author">
+          <div>Authors Name/s per 2nd Affiliation</div>
+          <div>line 1: dept. name of organization</div>
+          <div>line 2: name of organization, acronyms acceptable</div>
+          <div>line 3: City, Country</div>
+          <div>line 4: e-mail address if desired</div>
+        </div>
+    </header>
+
+    <div class="abstract">
+      <p><em>Abstract</em>—This electronic document is a <q>live</q> template and already defines the components of your paper in its style sheet.</p>
+      <p><em>Keywords</em>—<em>component; formatting; style; styling; insert</em></p>
+    </div>
+
+    <h1>Introduction</h1>
+    <section>
+			<p>This template shows the basic setup of a printable online IEEE formatted paper. This interface provides support for highlighting Communicating Hardware Processes and Production Rules code blocks using a prism-js plugin. It provides support for simple and clean charts using chartist and a few plugins. And it provides support for IEEE formatting.</p>
+    </section>
+
+    <h1>Usage</h1>
+    <section>
+      <h2>Code</h2>
+			<subsection class="language-chp">
+			<p>inline code may be included using like so <code>*[ L?; R! ]</code>. Block code, must be surrounded with pre tags. The highlight language may be specified by <code class="language-html">class="language-chp"</code> or <code class="language-html">class="language-prs"</code>. This is inherited, so as long as any parent tag has this class, code will be highlighted with that language.</p>
+<pre><code>
+*[ [ L.f -> R.f+
+   [] L.t -> R.t+
+   ]; L.e-;
+   [~L.f & ~L.t]; R.f-,R.t-;
+   L.e+
+ ] ||
+*[[L.e]; [true->L.f+:true->L.t+]; [~L.e]; L.f-,L.t-] ||
+*[[R.f | R.t]; R.e-; [~R.f & ~R.t]; R.e+]
+</code></pre>
+			</subsection>
+			</h2>Charts</h2>
+			<subsection>
+      <center><figure>
+				<ul class="ct-legend">
+					<li class="ct-series-a" data-legend="0">series 0</li>
+					<li class="ct-series-b" data-legend="1">series 1 <a href="#jacobs63"></a></li>
+					<li class="ct-series-c" data-legend="2">series 2 <a href="#maxwell1892"></a></li>
+					<li class="ct-series-d" data-legend="3">series 3</li>
+					<li class="ct-series-e" data-legend="4">series 4</li>
+				</ul>
+
+				<div class="ct-chart ct-perfect-fourth" id="example-figure"></div>
+        <figcaption>Example of a figure caption.</figcaption>
+      </figure></center>
+			</subsection>
+			<h2>Citations</h2>
+			<subsection>
+			<p>Citations are handled with HTML links to the reference <a href="#eason55"></a>. They are automatically numbered by the template so you can leave their content empty.</p>
+			</subsection>
+    <h1>References</h1>
+
+    <div class="references">
+      <cite id="eason55">G. Eason, B. Noble, and I. N. Sneddon, <q>On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,</q> Phil. Trans. Roy. Soc. London, vol. A247, pp. 529–551, April 1955. (<em>references</em>)</cite>
+      <cite id="maxwell1892">J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68–73.</cite>
+      <cite id="jacobs63">I. S. Jacobs and C. P. Bean, <q>Fine particles, thin films and exchange anisotropy,</q> in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271–350.</cite>
+      <cite id="elissa">K. Elissa, <q>Title of paper if known,</q> unpublished.</cite>
+      <cite id="park13">Park, T. H., Saxena, A., Jagannath, S., Wiedenbeck, S., and Forte, A. Towards a taxonomy of errors in HTML and CSS. In <em>Proc. ICER 2013</em>, ACM Press (2013), 75-82.</cite>
+      <cite id="nicole">R. Nicole, <q>Title of paper with only first word capitalized,</q> J. Name Stand. Abbrev., in press.</cite>
+      <cite id="yorozu87">Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, <q>Electron spectroscopy studies on magneto-optical media and plastic substrate interface,</q> IEEE Transl. J. Magn. Japan, vol. 2, pp. 740–741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].</cite>
+      <cite id="young89">M. Young, The Technical Writer’s Handbook. Mill Valley, CA: University Science, 1989.</cite>
+    </div>
+  </body>
+</html>
