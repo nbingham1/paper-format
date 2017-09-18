@@ -40,7 +40,6 @@ img {
 
 code {
 	display: inline;
-	break-inside: avoid;
 	font-family: Courier, monospace;
 	text-align: left;
 	white-space: pre-wrap;
@@ -51,8 +50,9 @@ code {
 
 pre {
 	display: block;
-	font-size: 0.8rem;
+	break-inside: avoid;
 	page-break-inside: avoid;
+	font-size: 0.8rem;
 	max-width: calc(100% - 1.0rem);
 	padding: 0.25rem 0.25rem 0.25rem 0.25rem;
 	counter-increment: code;
@@ -157,10 +157,10 @@ h4.counter-reset { counter-increment: subsubsection; }
 h5.counter-reset { counter-increment: subsubsubsection; }
 h6.counter-reset { counter-increment: subsubsubsubsection; }
 
-h1:not(.counter-skip)::before {
+h1:not(.counter-skip):not(.appendix):not(.references)::before {
 	content: "" "" counter(section, upper-roman) "."; }
 
-h2:not(.counter-skip)::before {
+h2:not(.counter-skip):not(.appendix)::before {
 	content: "" "" counter(subsection, upper-alpha) "."; }
 
 h3:not(.counter-skip)::before {
@@ -175,7 +175,18 @@ h5:not(.counter-skip)::before {
 h6:not(.counter-skip)::before {
 	content: "" "" counter(subsubsubsubsection, upper-roman) "."; }
 
+h1.appendix:not(.counter-skip)::before {
+	content: "" !important;
+	margin-right: 0 !important;
+}
 
+h2.appendix:not(.counter-skip)::before {
+	content: "" "Appendix " counter(subsection, upper-alpha) "."; }
+
+h1.references:not(.counter-skip)::before {
+	content: "" !important;
+	margin-right: 0 !important;
+}
 
 h1 {
 	font-size: "font-size-h1";
@@ -362,7 +373,5 @@ header {
 	top: 50%; }
 
 .references {
-	margin-top: 1.8rem; }
+	margin-top: 1.2rem; }
 
-h1.references {
-	margin-top: 2.4rem; }
