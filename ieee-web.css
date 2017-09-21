@@ -28,20 +28,15 @@ p, ul, ol, cite {
 	line-height: 1.2;
 }
 
-figure.top {
-	display: none;
+img {
+	width: initial;
 }
-
-figure.inside {
-	display: block;
-}
-
 
 .print-only {
 	display: none;
 }
 
 .web-only {
-	display: initial;
+	display: block;
 }
 

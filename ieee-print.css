@@ -15,6 +15,7 @@ body {
 	font-family: "Times New Roman", Times, serif;
 	hyphens: none;
 	margin: 0% 0% 0% 0%;
+	counter-reset: figure;
 }
 
 body > :first-child {
@@ -27,7 +28,7 @@ a {
 }
 
 img {
-	display: block;
+	display: inline-block;
 	max-width: 100%;
 	width: 100%;
 }
@@ -64,31 +65,10 @@ figure {
 	display: block;
 	page-break-inside: avoid;
 	break-inside: avoid;
-	counter-increment: figure;
 	margin: 0.5rem 0 0.5rem 0;
 	width: 100%;
 	text-align: center;
-}
-
-figure.top {
-	display: block;
-	page-break-inside: avoid;
-	break-inside: avoid;
 	counter-increment: figure;
-	margin: 2rem 0 0.5rem 0;
-	width: 100%;
-	text-align: center;
-	column-span: all;
-}
-
-figure.inside {
-	display: none;
-	page-break-inside: avoid;
-	break-inside: avoid;
-	counter-increment: figure;
-	margin: 0.5rem 0 0.5rem 0;
-	width: 100%;
-	text-align: center;
 }
 
 figcaption {
