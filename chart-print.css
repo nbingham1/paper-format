@@ -614,13 +614,6 @@
 
 /*# sourceMappingURL=chartist.css.map */
 
-figure {
-	display: inline-block;
-	text-align: left;
-	max-width: 1024px;
-	width: 100%;
-}
-
 .ct-chart {
 	display: inline-block;
 	max-width: 1024px;

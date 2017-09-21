@@ -27,7 +27,9 @@ a {
 }
 
 img {
+	display: block;
 	max-width: 100%;
+	width: 100%;
 }
 
 .print-only {
@@ -61,18 +63,42 @@ pre {
 figure {
 	display: block;
 	page-break-inside: avoid;
-	max-width: 100%;
+	break-inside: avoid;
 	counter-increment: figure;
 	margin: 0.5rem 0 0.5rem 0;
+	width: 100%;
+	text-align: center;
+}
+
+figure.top {
+	display: block;
+	page-break-inside: avoid;
+	break-inside: avoid;
+	counter-increment: figure;
+	margin: 2rem 0 0.5rem 0;
+	width: 100%;
+	text-align: center;
+	column-span: all;
+}
+
+figure.inside {
+	display: none;
+	page-break-inside: avoid;
+	break-inside: avoid;
+	counter-increment: figure;
+	margin: 0.5rem 0 0.5rem 0;
+	width: 100%;
+	text-align: center;
 }
 
 figcaption {
 	caption-side: bottom;
-	text-align: left;
+	text-align: middle;
 	font: inherit;
 	font-size: 0.8rem;
 	font-weight: normal;
-	margin: 0 0 0.4rem 0; }
+	margin: 0 0 0.4rem 0;
+}
 
 figcaption::before {
 	content: "Fig. " counter(figure) ". "; }
@@ -193,17 +219,19 @@ h1 {
 	font-variant: small-caps;
 	margin: 1.0rem 0 0.2rem 0;
 	text-align: center;
+	page-break-after: avoid;
 }
 
 h2 {
 	font-size: "font-size-h2";
 	font-style: italic;
 	margin: 0.1rem 0 0.1rem 0;
+	page-break-after: avoid;
 }
 
 h3 {
 	font-size: "font-size-h3";
-	page-break-after: auto; 
+	page-break-after: avoid; 
 	text-indent: 1.5rem;
 	font-style: italic;
 	margin: 0.1rem 0 0.1rem 0; 
@@ -211,7 +239,7 @@ h3 {
 
 h4 {
 	font-size: "font-size-h4";
-	page-break-after: auto; 
+	page-break-after: avoid; 
 	text-indent: 2.25rem;
 	font-style: italic;
 	margin: 0.1rem 0 0.1rem 0; 
@@ -219,7 +247,7 @@ h4 {
 
 h5 {
 	font-size: "font-size-h5";
-	page-break-after: auto; 
+	page-break-after: avoid; 
 	font-variant: small-caps;
 	margin: 0.1rem 0 0.1rem 0;
 	text-align: center;
@@ -284,8 +312,8 @@ small { font-size: 0.8rem; }
 .col-break-after { break-after: always; }
 .col-break-before { break-after: always; }
 
-.page-break-after { break-after: always; }
-.page-break-before { break-after: always; }
+.page-break-after { page-break-after: always; }
+.page-break-before { page-break-after: always; }
 
 .abstract {
 	font-size: 0.9rem;
@@ -299,7 +327,8 @@ small { font-size: 0.8rem; }
 ul {
 	text-align: justify;
 	line-height: 1;
-	margin: 0 0 0.5rem 0;
+	margin: 0 0 0.25rem 0;
+	padding-left: 1.25rem;
 }
 
 ul ul {
@@ -311,7 +340,8 @@ ol {
 	line-height: 1;
 	list-style: decimal outside none;
 	font-style: italic;
-	margin: 0 0 0.5rem 0;
+	margin: 0 0 0.25rem 0;
+	padding-left: 1.25rem;
 }
 
 ol ol {
