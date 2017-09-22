@@ -276,7 +276,7 @@ small { font-size: 0.8rem; }
 	margin-top: 1rem;
 	padding-top: 0.3rem; }
 	size: 8.5in 11in;
-	margin: 0.75in 0.62in 1in 0.62in; }
+	margin: 0.75in 0.62in 0.75in 0.62in; }
 
 .cites > :not(:first-child)::before {
 	content: none; }
