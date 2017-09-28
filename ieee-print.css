@@ -385,3 +385,22 @@ header {
 .references {
 	margin-top: 1.2rem; }
 
+.bio {
+	display: block;
+	position: relative;
+	clear: both;
+	width: 100%;
+	padding-top: 1.5rem;
+	font-family: "Times New Roman", Times, serif;
+	hyphens: none;
+	font-size: 1rem;
+}
+
+.bio img {
+	display: inline-block;
+	float: left;
+	width: 25%;
+	padding-right: 1.5rem;
+	padding-bottom: 1rem;
+}
+
