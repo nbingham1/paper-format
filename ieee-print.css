@@ -243,8 +243,8 @@ h1 + * > h2:first-child {
 
 p {
 	text-align: justify;
-	line-height: 1;
-	margin: 0 0 0.5rem 0;
+	line-height: 1.2;
+	margin: 0 0 0.3rem 0;
 	text-indent: 1.5rem; }
 
 q::before { content: '“'; }
@@ -276,7 +276,7 @@ small { font-size: 0.8rem; }
 	margin-top: 1rem;
 	padding-top: 0.3rem; }
 	size: 8.5in 11in;
-	margin: 0.75in 0.62in 0.75in 0.62in; }
+	margin: 0.5in 0.62in 0.5in 0.62in; }
 
 .cites > :not(:first-child)::before {
 	content: none; }
@@ -301,12 +301,13 @@ small { font-size: 0.8rem; }
 }
 
 .abstract p {
+	line-height: 1.15;
 	margin-bottom: 1.2rem;
 }
 
 ul {
 	text-align: justify;
-	line-height: 1;
+	line-height: 1.2;
 	margin: 0 0 0.25rem 0;
 	padding-left: 1.25rem;
 }
@@ -317,7 +318,7 @@ ul ul {
 
 ol {
 	text-align: justify;
-	line-height: 1;
+	line-height: 1.2;
 	list-style: decimal outside none;
 	font-style: italic;
 	margin: 0 0 0.25rem 0;
@@ -390,17 +391,20 @@ header {
 	position: relative;
 	clear: both;
 	width: 100%;
-	padding-top: 1.5rem;
+	margin-top: 1rem;
 	font-family: "Times New Roman", Times, serif;
 	hyphens: none;
-	font-size: 1rem;
+	font-size: 0.8rem;
+	text-align: justify;
+	line-height: 1.2;
 }
 
 .bio img {
 	display: inline-block;
 	float: left;
-	width: 25%;
-	padding-right: 1.5rem;
-	padding-bottom: 1rem;
+	max-width: 1in;
+	max-height: 1.25in;
+	padding-right: 1rem;
+	padding-bottom: 0.5rem;
 }
 

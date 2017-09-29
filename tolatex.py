@@ -9,7 +9,7 @@ def escape(content):
 	if isinstance(content, list):
 		return [escape(item) for item in content]
 	else:
-		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%')
+		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%').replace("&", "\&")
 
 def process_usr(tag, result, parent):
 	if parent:
@@ -85,6 +85,11 @@ def div2latex(tag, parent):
 		result = latex.Group()
 		process_usr(tag, result, parent)
 		result.usr["abstract"] = True
+		result << tolatex(tag.content, result)
+		return result
+	elif "bio" in cls:
+		result = latex.Env("IEEEbiography")
+		process_usr(tag, result, parent)
 		result << tolatex(tag.content, result)
 		return result
 	else:
@@ -180,7 +185,7 @@ def a2latex(tag, parent):
 			process_usr(tag, result, parent)
 			result.args.append(latex.Group(tolatex(tag.content, parent), "", ""))
 			return result
-	return default2latex(tag, parent)
+	return latex.Group(tolatex(tag.content, parent), "", "")
 
 def cite2latex(tag, parent):
 	result = latex.Group()
@@ -297,6 +302,25 @@ def figure2latex(tag, parent):
 	result << tolatex(tag.content, result)
 	return result
 
+def figcaption2latex(tag, parent):
+	result = latex.Cmd("caption")
+	process_usr(tag, result, parent)
+	result.args = [latex.Group(tolatex(tag.content, result), "", "")]
+	return result
+
+def img2latex(tag, parent):
+	if "src" in tag.attrs:
+		src = tag.attrs["src"]
+		result = latex.Cmd("includegraphics")
+		process_usr(tag, result, parent)
+		result.args = [("width=1.0\\columnwidth",), src]
+		return result
+	else:
+		return default2latex(tag, parent)
+
+def br2latex(tag, parent):
+	return latex.Cmd("newline")
+
 handlers = {
 	'article': article2latex,
 	'div': div2latex,
@@ -327,6 +351,9 @@ handlers = {
 	'td': td2latex,
 	'th': th2latex,
 	'figure': figure2latex,
+	'figcaption': figcaption2latex,
+	'img': img2latex,
+	'br': br2latex,
 }
 
 def tolatex(tag, parent):
@@ -343,8 +370,11 @@ def tolatex(tag, parent):
 		else:
 			return default2latex(tag, parent)
 	elif isinstance(tag, html.STag):
-		print tag
-		return ""
+		if tag.name in handlers:
+			return handlers[tag.name](tag, parent)
+		else:
+			print tag
+			return ""
 	else:
 		return escape(tag)
 

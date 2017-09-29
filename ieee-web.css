@@ -40,3 +40,9 @@ img {
 	display: block;
 }
 
+.bio img {
+	max-width: initial;
+	max-height: initial;
+	width: 25%;
+	height: auto;
+}
