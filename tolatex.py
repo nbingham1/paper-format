@@ -13,7 +13,7 @@ def escape(content):
 		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%')
 
 def convert_code(content, lang, inline=False):
-	result = "".join(content)
+	result = "".join(content).strip()
 	if lang in ["prs"]:
 		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
 		result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
@@ -208,13 +208,14 @@ def code2latex(tag, parent):
 	else:
 		lang = ""
 
-	print lang
-
 	if "pre" in parent.usr:
+		page = latex.Env("minipage", args=[latex.Group(["0.95", latex.Cmd("linewidth", inline=True)])])
+		process_usr(tag, page, parent)
 		result = latex.Env("lstlisting", args=[("mathescape",)])
 		process_usr(tag, result, parent)
 		result << convert_code(tag.content, lang)
-		return result
+		page << result
+		return page
 	else:
 		result = latex.Cmd("protect\\lstinline", args=[("mathescape, columns=fixed",)], inline=True)
 		process_usr(tag, result, parent)
@@ -473,19 +474,7 @@ for path in paths:
 		if article:
 			print >>fptr, "\n".join([
 				"\\documentclass[journal]{IEEEtran}",
-				"\\usepackage{ifpdf}",
-				"\\usepackage{cite}",
 				"\\usepackage[pdftex]{graphicx}",
-				"\\usepackage{alltt}",
-				"\\usepackage{amsmath}",
-				"\\usepackage{algorithmic}",
-				"\\usepackage{array}",
-				"\\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}",
-				"\\usepackage{fixltx2e}",
-				"\\usepackage{stfloats}",
-				"\\usepackage{url}",
-				"\\usepackage{prs}",
-				"\\usepackage{siunitx}",
 				"\\usepackage{dirtytalk}",
 				"\\usepackage{hyperref}",
 				"\\usepackage{listings}",
@@ -497,7 +486,6 @@ for path in paths:
 				"		urlcolor=blue,",
 				"}",
 				"\\urlstyle{same}",
-				"\\noiosubscripts",
 				"\input{chp}",
 			])
 
