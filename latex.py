@@ -60,15 +60,17 @@ class Group:
 	def __init__(self,
 							 content = None,
 							 sep = "",
+							 start = "",
 							 end = "",
 							 usr = None):
 		self.content = content if content else []
 		self.sep = sep
+		self.start = start
 		self.end = end
 		self.usr = usr if usr else {}
 
 	def __str__(self):
-		return self.sep.join(self.emit()) + self.end
+		return self.start + self.sep.join(self.emit()) + self.end
 
 	def __lshift__(self, other):
 		if isinstance(other, (list, tuple)):

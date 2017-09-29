@@ -11,7 +11,7 @@ def escape(content):
 	else:
 		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%').replace("&", "\&")
 
-def process_usr(tag, result, parent):
+def process_usr(tag, result, parent, is_arg=False):
 	if parent:
 		result.usr = parent.usr.copy()
 
@@ -21,6 +21,9 @@ def process_usr(tag, result, parent):
 	if tag.name == "header":
 		result.usr["header"] = True
 
+	if is_arg:
+		result.usr["arg"] = True
+		
 	if "class" in tag.attrs:
 		cls = tag.attrs["class"].split()
 		for c in cls:
@@ -61,9 +64,9 @@ def div2latex(tag, parent):
 		return result
 	elif "author" in cls:
 		result = latex.Cmd("author")
-		process_usr(tag, result, parent)
+		process_usr(tag, result, parent, True)
 		result.args = [latex.Cmd("IEEEauthorblockA")]
-		process_usr(tag, result.args[0], result)
+		process_usr(tag, result.args[0], result, True)
 		result.args[0].args = tolatex(tag.content, result.args[0])
 		return result
 	elif "authors" in cls:
@@ -90,7 +93,8 @@ def div2latex(tag, parent):
 	elif "bio" in cls:
 		result = latex.Env("IEEEbiography")
 		process_usr(tag, result, parent)
-		result << tolatex(tag.content, result)
+		result.args = [(latex.Group([tolatex(tag.content[0], result)], "", "{", "}"),), tolatex(tag.content[1].content[0], result)]
+		result << tolatex(tag.content[2:], result)
 		return result
 	else:
 		return default2latex(tag, parent)
@@ -107,10 +111,13 @@ def hN2latex(tag, parent):
 		if tag.name == "h" + str(i):
 			if "header" in parent.usr:
 				result = latex.Cmd("title")
-				process_usr(tag, result, parent)
+				process_usr(tag, result, parent, True)
 				result.args = [latex.Group()]
 				process_usr(tag, result.args[0], result)
 				result.args[0] << tolatex(tag.content, result.args[0])
+				return result
+			elif tag.content[0] == "Appendix":
+				result = latex.Cmd("appendices")
 				return result
 			elif tag.content[0] != "References":
 				result = latex.Section("", i-1)
@@ -134,7 +141,7 @@ def p2latex(tag, parent):
 			result << tolatex(tag.content[2:], result)
 			return result
 	else:
-		result = latex.Group([], " ", "\n")
+		result = latex.Group([], " ", "", "\n")
 		process_usr(tag, result, parent)
 		result << tolatex(tag.content, result)
 		return result;
@@ -158,7 +165,7 @@ def code2latex(tag, parent):
 			result << latex.Group(tolatex(tag.content, result))
 			return result
 	else:
-		if "lang" in parent.usr and parent.usr["lang"] in ["prs", "hse", "chp"]:
+		if "arg" not in parent.usr and "lang" in parent.usr and parent.usr["lang"] in ["prs", "hse", "chp"]:
 			result = latex.Inline("", "@")
 			process_usr(tag, result, parent)
 			result.content = latex.Group()
@@ -178,14 +185,14 @@ def a2latex(tag, parent):
 		href = tag.attrs["href"]
 		if href[0] == "#":
 			result = latex.Cmd("cite", [href[1:]], end="")
-			process_usr(tag, result, parent)
+			process_usr(tag, result, parent, True)
 			return result
 		else:
 			result = latex.Cmd("href", [href], end="")
-			process_usr(tag, result, parent)
-			result.args.append(latex.Group(tolatex(tag.content, parent), "", ""))
+			process_usr(tag, result, parent, True)
+			result.args.append(latex.Group(tolatex(tag.content, parent)))
 			return result
-	return latex.Group(tolatex(tag.content, parent), "", "")
+	return latex.Group(tolatex(tag.content, parent))
 
 def cite2latex(tag, parent):
 	result = latex.Group()
@@ -197,7 +204,7 @@ def cite2latex(tag, parent):
 
 def q2latex(tag, parent):
 	result = latex.Cmd("say", end="")
-	process_usr(tag, result, parent)
+	process_usr(tag, result, parent, True)
 	result.args = [latex.Group()]
 	process_usr(tag, result.args[0], result)
 	result.args[0] << tolatex(tag.content, result.args[0])
@@ -205,7 +212,7 @@ def q2latex(tag, parent):
 
 def b2latex(tag, parent):
 	result = latex.Cmd("textbf", end="")
-	process_usr(tag, result, parent)
+	process_usr(tag, result, parent, True)
 	result.args = [latex.Group()]
 	process_usr(tag, result.args[0], result)
 	result.args[0] << tolatex(tag.content, result.args[0])
@@ -238,7 +245,7 @@ def em2latex(tag, parent):
 		return result
 	else:
 		result = latex.Cmd("textit", end="")
-		process_usr(tag, result, parent)
+		process_usr(tag, result, parent, True)
 		result.args = [latex.Group()]
 		process_usr(tag, result.args[0], result)
 		result.args[0] << tolatex(tag.content, result.args[0])
@@ -278,7 +285,7 @@ def tbody2latex(tag, parent):
 	return result
 
 def tr2latex(tag, parent):
-	result = latex.Group([], " & ", " \\\\\n")
+	result = latex.Group([], " & ", "", " \\\\\n")
 	process_usr(tag, result, parent)
 	result << tolatex(tag.content, result)
 	return result
@@ -304,15 +311,15 @@ def figure2latex(tag, parent):
 
 def figcaption2latex(tag, parent):
 	result = latex.Cmd("caption")
-	process_usr(tag, result, parent)
-	result.args = [latex.Group(tolatex(tag.content, result), "", "")]
+	process_usr(tag, result, parent, True)
+	result.args = [latex.Group(tolatex(tag.content, result))]
 	return result
 
 def img2latex(tag, parent):
 	if "src" in tag.attrs:
 		src = tag.attrs["src"]
 		result = latex.Cmd("includegraphics")
-		process_usr(tag, result, parent)
+		process_usr(tag, result, parent, True)
 		result.args = [("width=1.0\\columnwidth",), src]
 		return result
 	else:
@@ -365,15 +372,21 @@ def tolatex(tag, parent):
 				result.append(item)
 		return result
 	if isinstance(tag, html.Tag):
-		if tag.name in handlers:
-			return handlers[tag.name](tag, parent)
+		if "class" not in tag.attrs or "web-only" not in tag.attrs["class"]:
+			if tag.name in handlers:
+				return handlers[tag.name](tag, parent)
+			else:
+				return default2latex(tag, parent)
 		else:
-			return default2latex(tag, parent)
+			return ""
 	elif isinstance(tag, html.STag):
-		if tag.name in handlers:
-			return handlers[tag.name](tag, parent)
+		if "class" not in tag.attrs or "web-only" not in tag.attrs["class"]:
+			if tag.name in handlers:
+				return handlers[tag.name](tag, parent)
+			else:
+				print tag
+				return ""
 		else:
-			print tag
 			return ""
 	else:
 		return escape(tag)

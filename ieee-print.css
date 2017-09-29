@@ -347,7 +347,8 @@ ol ol {
 
 header {
 	column-span: all;
-	margin-bottom: 1.8rem; }
+	margin-top: 1.8rem;
+	margin-bottom: 3.6rem; }
 
 .footnote {
 	font-size: 0.8rem;
