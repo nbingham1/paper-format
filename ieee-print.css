@@ -187,7 +187,7 @@ h1.appendix:not(.counter-skip)::before {
 }
 
 h2.appendix:not(.counter-skip)::before {
-	content: "" "Appendix " counter(subsection, upper-alpha) "."; }
+	content: "" counter(subsection, upper-alpha) "."; }
 
 h1.references:not(.counter-skip)::before {
 	content: "" !important;

@@ -2,15 +2,18 @@ class Cmd:
 	def __init__(self,
 							 name,
 							 args = None,
-							 end = "\n",
-							 usr = None):
+							 usr = None,
+							 inline = False):
 		self.name = name
 		self.args = args if args else []
-		self.end = end
 		self.usr = usr if usr else {}
+		self.inline = inline
 
 	def __str__(self):
-		return self.emit()[0] + self.end
+		if self.inline:
+			return self.emit()[0]
+		else:
+			return self.emit()[0] + "\n"
 
 	def emit(self, tab = ""):
 		result = "\\" + self.name
@@ -26,14 +29,19 @@ class Env:
 							 name,
 							 args = None,
 							 content = None,
-							 usr = None):
+							 usr = None,
+							 inline = False):
 		self.name = name
 		self.args = args if args else []
 		self.content = content if content else []
 		self.usr = usr if usr else {}
+		self.inline = inline
 
 	def __str__(self):
-		return "\n".join(self.emit()) + "\n"
+		if self.inline:
+			return "".join(self.emit())
+		else:
+			return "\n".join(self.emit()) + "\n"
 
 	def __lshift__(self, other):
 		if isinstance(other, (list, tuple)):
@@ -84,21 +92,6 @@ class Group:
 			str(elem)
 			for elem in self.content
 		]
-
-class Inline:
-	def __init__(self,
-							 content = "",
-							 delimiter = "$",
-							 usr = None):
-		self.content = content
-		self.delimiter = delimiter
-		self.usr = usr if usr else {}
-
-	def __str__(self):
-		return self.emit()[0]
-
-	def emit(self, tab = ""):
-		return [self.delimiter + str(self.content) + self.delimiter]
 
 class Section(Cmd):
 	def __init__(self, title, level = 0, usr = None):

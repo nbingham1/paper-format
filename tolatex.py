@@ -3,13 +3,54 @@
 from pyhtml.parse import *
 import sys
 import os.path
+import re
 import latex
 
 def escape(content):
 	if isinstance(content, list):
 		return [escape(item) for item in content]
 	else:
-		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%').replace("&", "\&")
+		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%')
+
+def convert_code(content, lang, inline=False):
+	result = "".join(content)
+	if lang in ["prs"]:
+		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
+		result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
+		result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
+		result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
+		result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
+		result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
+		result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
+		result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
+		result = re.sub(r'\+(\s*(?:\n|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
+		result = re.sub(r'-(\s*(?:\n|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
+		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
+		if not inline:
+			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
+			result = re.sub(r'_([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)
+	else:
+		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
+		result = re.sub(r'\|\|', r'$\\parallel$', result, flags=re.MULTILINE)
+		result = re.sub(r'\*\[', r'$*[$', result, flags=re.MULTILINE)
+		result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
+		result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
+		result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
+		result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
+		result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
+		result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
+		result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
+		result = re.sub(r'\+(\s*(?:[;,:\|\]\[]|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
+		result = re.sub(r'-(\s*(?:[;,:\|\]\[]|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
+		result = re.sub(r'\[\]', r'$\\vrectangle$', result, flags=re.MULTILINE)
+		result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
+		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
+		if not inline:
+			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
+			result = re.sub(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)	
+		result = re.sub(r'([^\*])\[', r'\1$[$', result, flags=re.MULTILINE)
+		result = re.sub(r'\]', r'$]$', result, flags=re.MULTILINE)
+	return result
 
 def process_usr(tag, result, parent, is_arg=False):
 	if parent:
@@ -29,8 +70,6 @@ def process_usr(tag, result, parent, is_arg=False):
 		for c in cls:
 			if c[0:9] == "language-":
 				result.usr["lang"] = c[9:]
-				if result.usr["lang"] in ["chp", "hse", "prs"]:
-					result.usr["lang"] = "hse"
 			elif c == "author":
 				result.usr["author"] = True
 
@@ -38,7 +77,7 @@ def default2latex(tag, parent):
 	if tag.name not in ["section", "subsection", "document"]:
 		print tag
 
-	result = latex.Group([], "\n")
+	result = latex.Group()
 	process_usr(tag, result, parent)
 	result << tolatex(tag.content, result)
 	return result
@@ -91,10 +130,21 @@ def div2latex(tag, parent):
 		result << tolatex(tag.content, result)
 		return result
 	elif "bio" in cls:
+		content = []
+		img = None
+		name = None
+		for c in tag.content:
+			if isinstance(c, html.STag) and c.name == "img" and not img:
+				img = c
+			elif isinstance(c, html.Tag) and c.name == "b":
+				name = c.content[0]
+			else:
+				content.append(c)
+		
 		result = latex.Env("IEEEbiography")
 		process_usr(tag, result, parent)
-		result.args = [(latex.Group([tolatex(tag.content[0], result)], "", "{", "}"),), tolatex(tag.content[1].content[0], result)]
-		result << tolatex(tag.content[2:], result)
+		result.args = [(latex.Group([tolatex(img, result)], "", "{", "}"),), tolatex(name, result)]
+		result << tolatex(content, result)
 		return result
 	else:
 		return default2latex(tag, parent)
@@ -117,7 +167,7 @@ def hN2latex(tag, parent):
 				result.args[0] << tolatex(tag.content, result.args[0])
 				return result
 			elif tag.content[0] == "Appendix":
-				result = latex.Cmd("appendices")
+				result = latex.Cmd("appendix")
 				return result
 			elif tag.content[0] != "References":
 				result = latex.Section("", i-1)
@@ -141,7 +191,7 @@ def p2latex(tag, parent):
 			result << tolatex(tag.content[2:], result)
 			return result
 	else:
-		result = latex.Group([], " ", "", "\n")
+		result = latex.Group(end="\n")
 		process_usr(tag, result, parent)
 		result << tolatex(tag.content, result)
 		return result;
@@ -153,45 +203,52 @@ def pre2latex(tag, parent):
 	return result
 
 def code2latex(tag, parent):
-	if "pre" in parent.usr:
-		if "lang" in parent.usr:
-			result = latex.Env(parent.usr["lang"])
-			process_usr(tag, result, parent)
-			result << latex.Group(tolatex(tag.content, result))
-			return result
-		else:
-			result = latex.Env("equation")
-			process_usr(tag, result, parent)
-			result << latex.Group(tolatex(tag.content, result))
-			return result
+	if "lang" in parent.usr:
+		lang = parent.usr["lang"]
 	else:
-		if "arg" not in parent.usr and "lang" in parent.usr and parent.usr["lang"] in ["prs", "hse", "chp"]:
-			result = latex.Inline("", "@")
-			process_usr(tag, result, parent)
-			result.content = latex.Group()
-			process_usr(tag, result.content, result)
-			result.content << tolatex(tag.content, result.content)
-			return result
-		else:
-			result = latex.Inline("", "$")
-			process_usr(tag, result, parent)
-			result.content = latex.Group()
-			process_usr(tag, result.content, result)
-			result.content << tolatex(tag.content, result.content)
-			return result
+		lang = ""
 
+	print lang
+
+	if "pre" in parent.usr:
+		result = latex.Env("lstlisting", args=[("mathescape",)])
+		process_usr(tag, result, parent)
+		result << convert_code(tag.content, lang)
+		return result
+	else:
+		result = latex.Cmd("protect\\lstinline", args=[("mathescape, columns=fixed",)], inline=True)
+		process_usr(tag, result, parent)
+		group = latex.Group()
+		process_usr(tag, group, result)
+		group << convert_code(tag.content, lang, True).replace('\n', ' ')
+		result.args.append(group)
+		return result
+
+citation = re.compile("^#[a-z]*[0-9]{4}")
 def a2latex(tag, parent):
 	if "href" in tag.attrs:
 		href = tag.attrs["href"]
-		if href[0] == "#":
-			result = latex.Cmd("cite", [href[1:]], end="")
+		if citation.match(href):
+			result = latex.Cmd("cite", [href[1:]], inline=True)
 			process_usr(tag, result, parent, True)
 			return result
-		else:
-			result = latex.Cmd("href", [href], end="")
+		elif href[0] == "#":
+			result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
 			process_usr(tag, result, parent, True)
 			result.args.append(latex.Group(tolatex(tag.content, parent)))
 			return result
+		else:
+			result = latex.Cmd("href", [href], inline=True)
+			process_usr(tag, result, parent, True)
+			result.args.append(latex.Group(tolatex(tag.content, parent)))
+			return result
+	elif "name" in tag.attrs:
+		name = tag.attrs["name"]
+		result = latex.Group()
+		process_usr(tag, result, parent)
+		result << tolatex(tag.content, parent)
+		result << latex.Cmd("label", args=[name], inline=True)
+		return result
 	return latex.Group(tolatex(tag.content, parent))
 
 def cite2latex(tag, parent):
@@ -203,7 +260,7 @@ def cite2latex(tag, parent):
 	return result
 
 def q2latex(tag, parent):
-	result = latex.Cmd("say", end="")
+	result = latex.Cmd("say", inline=True)
 	process_usr(tag, result, parent, True)
 	result.args = [latex.Group()]
 	process_usr(tag, result.args[0], result)
@@ -211,7 +268,7 @@ def q2latex(tag, parent):
 	return result
 
 def b2latex(tag, parent):
-	result = latex.Cmd("textbf", end="")
+	result = latex.Cmd("textbf", inline=True)
 	process_usr(tag, result, parent, True)
 	result.args = [latex.Group()]
 	process_usr(tag, result.args[0], result)
@@ -231,9 +288,9 @@ def ol2latex(tag, parent):
 	return result
 
 def li2latex(tag, parent):
-	result = latex.Group(sep=" ")
+	result = latex.Group()
 	process_usr(tag, result, parent)
-	result << latex.Cmd("item", end="")
+	result << latex.Cmd("item", inline=True)
 	result << tolatex(tag.content, result)
 	return result
 
@@ -244,7 +301,7 @@ def em2latex(tag, parent):
 		result << tolatex(tag.content, result)
 		return result
 	else:
-		result = latex.Cmd("textit", end="")
+		result = latex.Cmd("textit", inline=True)
 		process_usr(tag, result, parent, True)
 		result.args = [latex.Group()]
 		process_usr(tag, result.args[0], result)
@@ -431,6 +488,8 @@ for path in paths:
 				"\\usepackage{siunitx}",
 				"\\usepackage{dirtytalk}",
 				"\\usepackage{hyperref}",
+				"\\usepackage{listings}",
+				"\\usepackage{stix}",
 				"\\hypersetup{",
 				"		colorlinks=true,",
 				"		linkcolor=blue,",
@@ -439,6 +498,7 @@ for path in paths:
 				"}",
 				"\\urlstyle{same}",
 				"\\noiosubscripts",
+				"\input{chp}",
 			])
 
 			print >>fptr, tolatex(article[0], None)
