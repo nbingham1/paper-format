@@ -12,7 +12,7 @@ def escape(content):
 	else:
 		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%')
 
-def convert_code(content, lang, inline=False):
+def convert_code(content, lang, caption=False):
 	result = "".join(content).strip()
 	if lang in ["prs"]:
 		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
@@ -26,9 +26,11 @@ def convert_code(content, lang, inline=False):
 		result = re.sub(r'\+(\s*(?:\n|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'-(\s*(?:\n|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
-		if not inline:
+		if not caption:
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
 			result = re.sub(r'_([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)
+		else:
+			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
 	else:
 		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
 		result = re.sub(r'\|\|', r'$\\parallel$', result, flags=re.MULTILINE)
@@ -45,9 +47,11 @@ def convert_code(content, lang, inline=False):
 		result = re.sub(r'\[\]', r'$\\vrectangle$', result, flags=re.MULTILINE)
 		result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
-		if not inline:
+		if not caption:
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
 			result = re.sub(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)	
+		else:
+			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
 		result = re.sub(r'([^\*])\[', r'\1$[$', result, flags=re.MULTILINE)
 		result = re.sub(r'\]', r'$]$', result, flags=re.MULTILINE)
 	return result
@@ -221,7 +225,7 @@ def code2latex(tag, parent):
 		process_usr(tag, result, parent)
 		group = latex.Group()
 		process_usr(tag, group, result)
-		group << convert_code(tag.content, lang, True).replace('\n', ' ')
+		group << convert_code(tag.content, lang, "arg" in parent.usr).replace('\n', ' ')
 		result.args.append(group)
 		return result
 

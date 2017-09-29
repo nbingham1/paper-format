@@ -1,0 +1,29 @@
+\lstdefinelanguage{chp}
+{
+  % list of keywords
+  morekeywords={skip,true,false},
+  sensitive=true, % keywords are case-sensitive
+  morecomment=[l]{//}, % l is for line comment
+  morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+\lstset{
+  language={chp},
+	basicstyle=\ttfamily\small,
+	basewidth={0.6em, 0.6em},
+  captionpos=b, % Position of the Caption (t for top, b for bottom)
+  extendedchars=true, % Allows 256 instead of 128 ASCII characters
+  tabsize=2, % number of spaces indented when discovering a tab 
+  columns=fixed, % make all characters equal width
+  keepspaces=true, % does not ignore spaces to fit width, convert tabs to spaces
+  showstringspaces=false, % lets spaces in strings appear as real spaces
+  breaklines=true, % wrap lines if they don't fit
+	breakatwhitespace,
+  commentstyle=\color{red}, % style of comments
+  keywordstyle=\color{blue}, % style of keywords
+  stringstyle=\color{grey}, % style of strings
+	belowskip=0.75em,
+	aboveskip=0.75em
+}
+
