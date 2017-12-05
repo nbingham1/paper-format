@@ -13,7 +13,7 @@ def escape(content):
 		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%')
 
 def convert_code(content, lang, caption=False):
-	result = "".join(content).strip()
+	result = "".join([str(c) for c in content]).strip()
 	if lang in ["prs"]:
 		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
 		result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
@@ -27,10 +27,12 @@ def convert_code(content, lang, caption=False):
 		result = re.sub(r'-(\s*(?:\n|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 		if not caption:
-			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
+			#result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
 			result = re.sub(r'_([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)
 		else:
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
+		result = re.sub(r'\{\$', r'{', result, flags=re.MULTILINE)
+		result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
 	else:
 		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
 		result = re.sub(r'\|\|', r'$\\parallel$', result, flags=re.MULTILINE)
@@ -48,12 +50,14 @@ def convert_code(content, lang, caption=False):
 		result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 		if not caption:
-			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
+			#result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
 			result = re.sub(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)	
 		else:
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
 		result = re.sub(r'([^\*])\[', r'\1$[$', result, flags=re.MULTILINE)
 		result = re.sub(r'\]', r'$]$', result, flags=re.MULTILINE)
+		#result = re.sub(r'\{\$', r'{', result, flags=re.MULTILINE)
+		#result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
 	return result
 
 def process_usr(tag, result, parent, is_arg=False):
@@ -237,7 +241,7 @@ def a2latex(tag, parent):
 			result = latex.Cmd("cite", [href[1:]], inline=True)
 			process_usr(tag, result, parent, True)
 			return result
-		elif href[0] == "#":
+		elif len(href) > 0 and href[0] == "#":
 			result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
 			process_usr(tag, result, parent, True)
 			result.args.append(latex.Group(tolatex(tag.content, parent)))
