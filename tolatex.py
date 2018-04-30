@@ -394,6 +394,14 @@ def img2latex(tag, parent):
 def br2latex(tag, parent):
 	return latex.Cmd("newline")
 
+def mark2latex(tag, parent):
+	result = latex.Cmd("hl", inline=True)
+	process_usr(tag, result, parent, True)
+	result.args = [latex.Group()]
+	process_usr(tag, result.args[0], result)
+	result.args[0] << tolatex(tag.content, result.args[0])
+	return result
+
 handlers = {
 	'article': article2latex,
 	'div': div2latex,
@@ -427,6 +435,7 @@ handlers = {
 	'figcaption': figcaption2latex,
 	'img': img2latex,
 	'br': br2latex,
+	'mark': mark2latex,
 }
 
 def tolatex(tag, parent):
@@ -487,6 +496,15 @@ for path in paths:
 				"\\usepackage{hyperref}",
 				"\\usepackage{listings}",
 				"\\usepackage{stix}",
+				#"\\usepackage{xcolor}",
+				"\\usepackage{color,soul}",
+				"\\soulregister\\cite7",
+				"\\soulregister\\ref7",
+				"\\soulregister\\pageref7",
+				"\\soulregister{\\protect}{0}",
+				"\\soulregister{\\lstinline}{1}",
+				"\\soulregister{\\bibitem}{1}",
+				"\\soulregister{\\say}{1}",
 				"\\hypersetup{",
 				"		colorlinks=true,",
 				"		linkcolor=blue,",
