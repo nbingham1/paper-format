@@ -43,6 +43,6 @@ img {
 .bio img {
 	max-width: initial;
 	max-height: initial;
-	width: 25%;
+	width: 150px;
 	height: auto;
 }
