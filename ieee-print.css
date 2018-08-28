@@ -8,9 +8,6 @@ html {
 }
 
 body {
-	column-count: 2;
-	column-gap: balance;
-	column-gap: 0.33in;
 	font-family: "Times New Roman", Times, serif;
 	hyphens: none;
 	margin: 0% 0% 0% 0%;
@@ -19,6 +16,12 @@ body {
 
 body > :first-child {
 	counter-reset: page 1;
+}
+
+.article-body {
+	column-count: 2;
+	column-gap: balance;
+	column-gap: 0.33in;
 }
 
 a {
@@ -345,7 +348,6 @@ ol ol {
 	text-align: center; }
 
 header {
-	column-span: all;
 	margin-top: 1.8rem;
 	margin-bottom: 3.6rem; }
 
