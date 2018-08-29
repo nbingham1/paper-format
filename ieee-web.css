@@ -15,8 +15,11 @@
 }
 
 body {
-	column-count: 1;
 	margin: 10% 7% 10% 7%;
+}
+
+.article-body {
+	column-count: 1;
 }
 
 a {
