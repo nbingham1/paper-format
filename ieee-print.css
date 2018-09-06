@@ -389,6 +389,7 @@ header {
 	margin-top: 1.2rem; }
 
 .bio {
+	break-inside: avoid;
 	display: block;
 	position: relative;
 	clear: both;
