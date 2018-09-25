@@ -615,7 +615,7 @@ Prism.languages.prs = {
 			{ pattern: /-(\s*(?:\n|$))/g,  replace: '\u21C2$1'}, // ⇂
 	],
 	'node': { 
-		pattern: /\.([a-zA-Z_][a-zA-Z0-9_]*)/g,
+		pattern: /\.([a-zA-Z0-9_]*)/g,
 		replace_after: '$1'
 	},  // subscript
 	'bubble': {
