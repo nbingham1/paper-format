@@ -37,10 +37,12 @@ img {
 
 .print-only {
 	display: initial;
+	position: relative;
 }
 
 .web-only {
 	display: none;
+	position: absolute;
 }
 
 code {

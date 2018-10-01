@@ -37,10 +37,12 @@ img {
 
 .print-only {
 	display: none;
+	position: absolute;
 }
 
 .web-only {
-	display: block;
+	display: initial;
+	position: relative;
 }
 
 .bio img {
