@@ -316,7 +316,7 @@ def ol2latex(tag, parent):
 def li2latex(tag, parent):
 	result = latex.Group()
 	process_usr(tag, result, parent)
-	result << latex.Cmd("item", inline=True)
+	result << latex.Cmd("item ", inline=True)
 	result << tolatex(tag.content, result)
 	return result
 
