@@ -6,11 +6,17 @@ import os.path
 import re
 import latex
 
+latex_figures = []
+latex_files = []
+latex_path = []
+latex_unresolved = {}
+latex_outpath = ""
+
 def escape(content):
 	if isinstance(content, list):
 		return [escape(item) for item in content]
 	else:
-		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%')
+		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%').replace('&', '\\&')
 
 def convert_code(content, lang, caption=False):
 	result = "".join([str(c) for c in content]).strip()
@@ -27,7 +33,7 @@ def convert_code(content, lang, caption=False):
 		result = re.sub(r'-(\s*(?:\n|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 		if not caption:
-			#result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
+			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z0-9_]*)', r'\1$_{\\text{\2}}$', result, flags=re.MULTILINE)
 			result = re.sub(r'_([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)
 		else:
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
@@ -50,7 +56,7 @@ def convert_code(content, lang, caption=False):
 		result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 		if not caption:
-			#result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'$\\mbox{\1}_{\\mbox{\2}}$', result, flags=re.MULTILINE)
+			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z0-9_]*)', r'\1$_{\\text{\2}}$', result, flags=re.MULTILINE)
 			result = re.sub(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)	
 		else:
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
@@ -108,6 +114,7 @@ def div2latex(tag, parent):
 		splt = os.path.splitext(name)
 		result = latex.Input(splt[0])	
 		process_usr(tag, result, parent)
+		convert_file(src)
 		return result
 	elif "author" in cls:
 		result = latex.Cmd("author")
@@ -223,7 +230,10 @@ def code2latex(tag, parent):
 		process_usr(tag, result, parent)
 		result << convert_code(tag.content, lang)
 		page << result
-		return page
+		pre = latex.Group()
+		pre << latex.Cmd("noindent")
+		pre << page
+		return pre
 	else:
 		result = latex.Cmd("protect\\lstinline", args=[("mathescape, columns=fixed",)], inline=True)
 		process_usr(tag, result, parent)
@@ -244,7 +254,14 @@ def a2latex(tag, parent):
 		elif len(href) > 0 and href[0] == "#":
 			result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
 			process_usr(tag, result, parent, True)
-			result.args.append(latex.Group(tolatex(tag.content, parent)))
+			if tag.content:
+				result.args.append(latex.Group(tolatex(tag.content, parent)))
+			elif href[1:] in latex_figures:
+				result.args.append("Fig. " + str(latex_figures.index(href[1:])+1))
+			elif href[1:] not in latex_unresolved:
+				latex_unresolved[href[1:]] = [result]
+			else:
+				latex_unresolved[href[1:]].append(result)
 			return result
 		else:
 			result = latex.Cmd("href", [href], inline=True)
@@ -369,10 +386,22 @@ def th2latex(tag, parent):
 	return result
 
 def figure2latex(tag, parent):
-	result = latex.Env("figure", args=[("ht",)])
-	process_usr(tag, result, parent)
-	result << latex.Cmd("centering")
-	result << tolatex(tag.content, result)
+	figure = latex.Env("figure", args=[("ht",)])
+	process_usr(tag, figure, parent)
+	figure << latex.Cmd("centering")
+	figure << tolatex(tag.content, figure)
+	result = figure
+	if 'id' in tag.attrs:
+		result = latex.Group()
+		result << latex.Cmd("label", args=[tag.attrs['id']], inline=True)
+		result << figure
+		latex_figures.append(tag.attrs['id'])
+		if tag.attrs['id'] in latex_unresolved:
+			for elem in latex_unresolved[tag.attrs['id']]:
+				elem.args.append("Fig. " + str(len(latex_figures)))
+			del latex_unresolved[tag.attrs['id']]
+	else:
+		latex_figures.append('')
 	return result
 
 def figcaption2latex(tag, parent):
@@ -392,7 +421,7 @@ def img2latex(tag, parent):
 		return default2latex(tag, parent)
 
 def br2latex(tag, parent):
-	return latex.Cmd("newline")
+	return latex.Cmd("\\\\")
 
 def mark2latex(tag, parent):
 	result = latex.Cmd("hl", inline=True)
@@ -466,32 +495,25 @@ def tolatex(tag, parent):
 	else:
 		return escape(tag)
 
-flag = None
-out_path = ""
-paths = []
-for arg in sys.argv[1:]:
-	if arg[0] == "-":
-		flag = arg
-	elif flag:
-		if flag == "-o" or flag == "--output":
-			out_path = arg
-		flag = None
-	else:
-		paths.append(arg)
-
-for path in paths:
+def convert_file(path):
 	name = os.path.splitext(os.path.basename(path))[0]
+
+	if len(latex_path) > 0:
+		path = os.path.join(latex_path[-1], path)
+	
+	latex_path.append(os.path.dirname(path))
 
 	parser = Parser()
 	with open(path, 'r') as fptr:
 		parser.feed(fptr.read())
 
-	with open(os.path.join(out_path, name + ".tex"), 'w') as fptr:
+	with open(os.path.join(latex_outpath, name + ".tex"), 'w') as fptr:
 		article = parser.syntax["article"]
 		if article:
 			print >>fptr, "\n".join([
 				"\\documentclass[journal]{IEEEtran}",
 				"\\usepackage[pdftex]{graphicx}",
+				"\\usepackage{amsmath}",
 				"\\usepackage{dirtytalk}",
 				"\\usepackage{hyperref}",
 				"\\usepackage{listings}",
@@ -518,3 +540,21 @@ for path in paths:
 			print >>fptr, tolatex(article[0], None)
 		else:
 			print >>fptr, tolatex(parser.syntax, None)
+
+	del latex_path[-1]
+
+flag = None
+paths = []
+for arg in sys.argv[1:]:
+	if arg[0] == "-":
+		flag = arg
+	elif flag:
+		if flag == "-o" or flag == "--output":
+			latex_outpath = arg
+		flag = None
+	else:
+		paths.append(arg)
+
+for path in paths:
+	convert_file(path)
+
