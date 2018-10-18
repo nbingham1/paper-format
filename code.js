@@ -549,7 +549,8 @@ Prism.languages.chp = {
 			{ pattern: /\+(\s*(?:[;,:\|\]\[]|$))/g, replace: '\u21BE$1'}, // ↾
 			{ pattern: /-(\s*(?:[;,:\|\]\[]|$))/g,  replace: '\u21C2$1'}, // ⇂
 			{ pattern: /\[\]/g, replace: '\u25AF'}, // ▯
-			{ pattern: /:([^=])/g,    replace: '|$1'} // |
+			{ pattern: /:([^=])/g,    replace: '|$1'}, // |
+			{ pattern: /\.\.\./g, replace: '\u2026'} // …
 	],
 	'node': { 
 		pattern: /\.([a-zA-Z0-9_]+)/g,
