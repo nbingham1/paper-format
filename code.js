@@ -552,7 +552,7 @@ Prism.languages.chp = {
 			{ pattern: /:([^=])/g,    replace: '|$1'} // |
 	],
 	'node': { 
-		pattern: /\.([a-zA-Z_][a-zA-Z0-9_]*)/g,
+		pattern: /\.([a-zA-Z0-9_]+)/g,
 		replace_after: '$1'
 	},  // subscript
 	'probe': {
