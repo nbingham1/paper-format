@@ -158,6 +158,10 @@ pre[class*="language-"] {
 	vertical-align: sub;
 	font-size: 0.7em;
 }
+.token.node_long {
+	vertical-align: sub;
+	font-size: 0.7em;
+}
 .token.probe,
 .token.bubble {
 	text-decoration: overline;

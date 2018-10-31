@@ -109,24 +109,17 @@ td {
 	padding: 0.333rem;
 	text-align: center; }
 
-table > caption:not(.foot) {
-	caption-side: top;
-	font: inherit;
-	font-variant: small-caps;
-	font-weight: bold;
-	margin: 0 0 0.4rem;
-}
-
-table > caption:not(.foot)::before {
-	content: "Table " counter(table) ". ";
-}
-
-table > caption.foot {
+table > caption {
+	caption-side: bottom;
+	text-align: middle;
 	font: inherit;
 	font-size: 0.8rem;
 	font-weight: normal;
-	caption-side: bottom;
-	text-align: right;
+	margin: 0 0 0.4rem 0;
+}
+
+table > caption::before {
+	content: "Table " counter(table) ". ";
 }
 
 h1, h2, h3, h4, h5, h6 {
