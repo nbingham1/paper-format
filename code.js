@@ -550,7 +550,8 @@ Prism.languages.chp = {
 			{ pattern: /-(\s*(?:[;,:\|\]\[]|$))/g,  replace: '\u21C2$1'}, // ⇂
 			{ pattern: /\[\]/g, replace: '\u25AF'}, // ▯
 			{ pattern: /:([^=])/g,    replace: '|$1'}, // |
-			{ pattern: /\.\.\./g, replace: '\u2026'} // …
+			{ pattern: /\.\.\./g, replace: '\u2026'}, // …
+			{ pattern: /\\\*/g, replace: '\u2022'} // •
 	],
 	'node_long': { 
 		pattern: /\.{([^}]*)}/g,
@@ -627,10 +628,10 @@ Prism.languages.prs = {
 		pattern: /\.([a-zA-Z0-9_]*)/g,
 		replace_after: '$1'
 	},  // subscript
-	'bubble': {
+	/*'bubble': {
 		pattern: /_([a-zA-Z_][a-zA-Z0-9_]*)/g,
 		replace_after: '$1'
-	},  // overline
+	},  // overline*/
 	'logic': {
 		pattern: /\u00AC|\u2227|\u2228/
 	},
