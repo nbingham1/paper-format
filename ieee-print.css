@@ -21,7 +21,7 @@ body > :first-child {
 .article-body {
 	column-count: 2;
 	column-gap: balance;
-	column-gap: 0.33in;
+	column-gap: 0.25in;
 }
 
 a {
@@ -192,7 +192,7 @@ h1.references:not(.counter-skip)::before {
 }
 
 h1 {
-	font-size: "font-size-h1";
+	font-size: 1rem;
 	font-variant: small-caps;
 	margin: 1.0rem 0 0.2rem 0;
 	text-align: center;
@@ -200,14 +200,14 @@ h1 {
 }
 
 h2 {
-	font-size: "font-size-h2";
+	font-size: 1rem;
 	font-style: italic;
 	margin: 0.1rem 0 0.1rem 0;
 	page-break-after: avoid;
 }
 
 h3 {
-	font-size: "font-size-h3";
+	font-size: 1rem;
 	page-break-after: avoid; 
 	text-indent: 1.5rem;
 	font-style: italic;
@@ -215,7 +215,7 @@ h3 {
 }
 
 h4 {
-	font-size: "font-size-h4";
+	font-size: 1rem;
 	page-break-after: avoid; 
 	text-indent: 2.25rem;
 	font-style: italic;
@@ -223,7 +223,7 @@ h4 {
 }
 
 h5 {
-	font-size: "font-size-h5";
+	font-size: 1rem;
 	page-break-after: avoid; 
 	font-variant: small-caps;
 	margin: 0.1rem 0 0.1rem 0;
@@ -231,7 +231,7 @@ h5 {
 }
 
 h6 {
-	font-size: "font-size-h6";
+	font-size: 1rem;
 }
 
 h1 + h2,
@@ -273,7 +273,7 @@ small { font-size: 0.8rem; }
 	margin-top: 1rem;
 	padding-top: 0.3rem; }
 	size: 8.5in 11in;
-	margin: 0.5in 0.62in 0.5in 0.62in; }
+	margin: 0.75in 0.63in 1.0in 0.63in; }
 
 .cites > :not(:first-child)::before {
 	content: none; }
@@ -364,7 +364,7 @@ header {
 	column-break-after: always;
 	text-align: center; }
 	.author > :first-child {
-	font-size: 1.1rem; }
+	font-size: 0.9rem; }
 
 .equation {
 	margin: 1.2rem 0 0.8rem;
