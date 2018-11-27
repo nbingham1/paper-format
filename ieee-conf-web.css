@@ -18,6 +18,10 @@ body {
 	margin: 10% 7% 10% 7%;
 }
 
+.title {
+	margin-bottom: 2.1rem;
+}
+
 .article-body {
 	column-count: 1;
 }
