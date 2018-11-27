@@ -192,7 +192,7 @@ h1.references:not(.counter-skip)::before {
 }
 
 h1 {
-	font-size: 1rem;
+	font-size: 1.2rem;
 	font-variant: small-caps;
 	margin: 1.0rem 0 0.2rem 0;
 	text-align: center;
@@ -343,8 +343,8 @@ ol ol {
 	text-align: center; }
 
 header {
-	margin-top: 1.8rem;
-	margin-bottom: 3.6rem; }
+	margin-top: 0.0rem;
+	margin-bottom: 3.4rem; }
 
 .footnote {
 	font-size: 0.8rem;
