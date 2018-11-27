@@ -1,0 +1,408 @@
+@import url("proof.css");
+@import url("cite.css");
+
+@charset "UTF-8";
+
+html {
+	font-size: 10pt;
+}
+
+body {
+	font-family: "Times New Roman", Times, serif;
+	hyphens: none;
+	margin: 0% 0% 0% 0%;
+	counter-reset: figure;
+}
+
+body > :first-child {
+	counter-reset: page 1;
+}
+
+.article-body {
+	column-count: 2;
+	column-gap: balance;
+	column-gap: 0.25in;
+}
+
+a {
+	color: black;
+	text-decoration: none;
+}
+
+img {
+	display: inline-block;
+	max-width: 100%;
+	width: 100%;
+}
+
+.print-only {
+	display: initial;
+	position: relative;
+}
+
+.web-only {
+	display: none;
+	position: absolute;
+}
+
+code {
+	display: inline;
+	font-family: Courier, monospace;
+	text-align: left;
+	white-space: pre-wrap;
+	width: 100%;
+	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+}
+
+pre {
+	display: block;
+	break-inside: avoid;
+	page-break-inside: avoid;
+	font-size: 0.8rem;
+	max-width: calc(100% - 1.0rem);
+	padding: 0.25rem 0.25rem 0.25rem 0.25rem;
+	counter-increment: code;
+}
+
+figure {
+	display: block;
+	page-break-inside: avoid;
+	break-inside: avoid;
+	margin: 0.5rem 0 0.5rem 0;
+	width: 100%;
+	text-align: center;
+	counter-increment: figure;
+}
+
+figcaption {
+	caption-side: bottom;
+	text-align: middle;
+	font: inherit;
+	font-size: 0.8rem;
+	font-weight: normal;
+	margin: 0 0 0.4rem 0;
+}
+
+figcaption::before {
+	content: "Fig. " counter(figure) ". "; }
+
+table {
+	font-size: 0.8rem; 
+	page-break-inside: avoid;
+	border-collapse: collapse;
+	border-spacing: 0px;	
+	counter-increment: table;
+	margin: 0.25rem 0 0.75rem 0;
+	width: 100%; }
+
+thead,tfoot { display: table-row-group; }
+
+th {
+	border-bottom: 1px solid #000;
+}
+
+th,
+td {
+	border-spacing: 0px;	
+	margin: 0 0 0 0;
+	padding: 0.333rem;
+	text-align: center; }
+
+table > caption {
+	caption-side: bottom;
+	text-align: middle;
+	font: inherit;
+	font-size: 0.8rem;
+	font-weight: normal;
+	margin: 0 0 0.4rem 0;
+}
+
+table > caption::before {
+	content: "Table " counter(table) ". ";
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-align: left;
+	text-justify: none;
+	break-after: avoid;
+	font-family: "Times New Roman", Times, serif;
+	font-weight: normal;
+	hyphens: none; }
+
+h1:not(.counter-skip)::before,
+h2:not(.counter-skip)::before,
+h3:not(.counter-skip)::before,
+h4:not(.counter-skip)::before,
+h5:not(.counter-skip)::before,
+h6:not(.counter-skip)::before {
+	margin-right: 0.5rem; }
+
+.counter-skip h1::before,
+.counter-skip h2::before,
+.counter-skip h3::before,
+.counter-skip h4::before,
+.counter-skip h5::before,
+.counter-skip h6::before {
+	content: "" !important;
+	margin-right: 0 !important; }
+
+h1:not(.counter-skip) { counter-increment: section; }
+h2:not(.counter-skip) { counter-increment: subsection; }
+h3:not(.counter-skip) { counter-increment: subsubsection; }
+h4:not(.counter-skip) { counter-increment: subsubsection; }
+h5:not(.counter-skip) { counter-increment: subsubsubsection; }
+h6:not(.counter-skip) { counter-increment: subsubsubsubsection; }
+h1.counter-reset { counter-increment: section; }
+h2.counter-reset { counter-increment: subsection; }
+h3.counter-reset { counter-increment: subsubsection; }
+h4.counter-reset { counter-increment: subsubsection; }
+h5.counter-reset { counter-increment: subsubsubsection; }
+h6.counter-reset { counter-increment: subsubsubsubsection; }
+
+h1:not(.counter-skip):not(.appendix):not(.references)::before {
+	content: "" "" counter(section, upper-roman) "."; }
+
+h2:not(.counter-skip):not(.appendix)::before {
+	content: "" "" counter(subsection, upper-alpha) "."; }
+
+h3:not(.counter-skip)::before {
+	content: "" "" counter(subsubsection, decimal) "."; }
+
+h4:not(.counter-skip)::before {
+	content: "" "" counter(subsubsection, lower-alpha) "."; }
+
+h5:not(.counter-skip)::before {
+	content: "" "" counter(subsubsubsection, upper-roman) "."; }
+
+h6:not(.counter-skip)::before {
+	content: "" "" counter(subsubsubsubsection, upper-roman) "."; }
+
+h1.appendix:not(.counter-skip)::before {
+	content: "" !important;
+	margin-right: 0 !important;
+}
+
+h2.appendix:not(.counter-skip)::before {
+	content: "" counter(subsection, upper-alpha) "."; }
+
+h1.references:not(.counter-skip)::before {
+	content: "" !important;
+	margin-right: 0 !important;
+}
+
+h1 {
+	font-size: 1rem;
+	font-variant: small-caps;
+	margin: 1.0rem 0 0.2rem 0;
+	text-align: center;
+	page-break-after: avoid;
+}
+
+h2 {
+	font-size: 1rem;
+	font-style: italic;
+	margin: 0.1rem 0 0.1rem 0;
+	page-break-after: avoid;
+}
+
+h3 {
+	font-size: 1rem;
+	page-break-after: avoid; 
+	text-indent: 1.5rem;
+	font-style: italic;
+	margin: 0.1rem 0 0.1rem 0; 
+}
+
+h4 {
+	font-size: 1rem;
+	page-break-after: avoid; 
+	text-indent: 2.25rem;
+	font-style: italic;
+	margin: 0.1rem 0 0.1rem 0; 
+}
+
+h5 {
+	font-size: 1rem;
+	page-break-after: avoid; 
+	font-variant: small-caps;
+	margin: 0.1rem 0 0.1rem 0;
+	text-align: center;
+}
+
+h6 {
+	font-size: 1rem;
+}
+
+h1 + h2,
+h1 + * > h2:first-child {
+	margin-top: 0.2rem; }
+
+p {
+	text-align: justify;
+	line-height: 1.2;
+	margin: 0 0 0.3rem 0;
+	text-indent: 1.5rem; }
+
+q::before { content: '“'; }
+q::after { content: '”'; }
+q > q::before { content: '‘'; }
+q > q::after { content: '’'; }
+
+small { font-size: 0.8rem; }
+
+.footnote {
+	counter-increment: footnote;
+	float: prince-column-footnote;
+	margin-left: .333rem;
+	padding-left: .667rem; }
+	.footnote:footnote-call {
+	content: counter(footnote);
+	font-size: 0.66rem;
+	line-height: none;
+	vertical-align: super; }
+	.footnote:footnote-marker {
+	content: counter(footnote);
+	font-size: 0.66rem;
+	footnote-style-position: inside; }
+
+@page {
+	escape("@")footnotes {
+	border-top: 0.5px solid #000;
+	columns: 2;
+	margin-top: 1rem;
+	padding-top: 0.3rem; }
+	size: 8.5in 11in;
+	margin: 0.75in 0.63in 1.0in 0.63in; }
+
+.cites > :not(:first-child)::before {
+	content: none; }
+
+.cites > :not(:last-child)::after {
+	content: ", "; }
+
+.col-1 { column-count: 1; }
+.col-2 { column-count: 2; }
+.col-3 { column-count: 3; }
+.col-4 { column-count: 4; }
+.col-span { column-span: all; }
+.col-break-after { break-after: always; }
+.col-break-before { break-after: always; }
+
+.page-break-after { page-break-after: always; }
+.page-break-before { page-break-after: always; }
+
+.abstract {
+	font-size: 0.9rem;
+	font-weight: bold;
+}
+
+.abstract p {
+	line-height: 1.15;
+	margin-bottom: 1.2rem;
+}
+
+ul {
+	text-align: justify;
+	line-height: 1.2;
+	margin: 0 0 0.25rem 0;
+	padding-left: 1.25rem;
+}
+
+ul ul {
+	margin: 0 0 0 0;
+}
+
+ol {
+	text-align: justify;
+	line-height: 1.2;
+	list-style: decimal outside none;
+	font-style: italic;
+	margin: 0 0 0.25rem 0;
+	padding-left: 1.25rem;
+}
+
+ol ol {
+	list-style: lower-alpha outside none;
+	font-style: italic;
+	margin: 0 0 0 0;
+}
+
+.title {
+	font-size: 2.4rem;
+	font-variant: normal;
+	margin-top: 0;
+	margin-bottom: 0.5rem; }
+
+.subtitle {
+	font-size: 1.4rem;
+	font-style: normal;
+	font-weight: normal;
+	margin-bottom: 3.5rem;
+	margin-top: 0;
+	text-align: center; }
+
+header {
+	margin-top: 1.8rem;
+	margin-bottom: 3.6rem; }
+
+.footnote {
+	font-size: 0.8rem;
+	font-weight: normal;
+	margin-bottom: -.38in; }
+	.footnote:footnote-call, .footnote:footnote-marker {
+	content: none;
+	display: none; }
+
+.authors {
+	column-gap: 0; }
+	.authors + .authors {
+	margin-top: 0.6rem; }
+
+.author {
+	break-inside: avoid;
+	column-break-after: always;
+	text-align: center; }
+	.author > :first-child {
+	font-size: 0.9rem; }
+
+.equation {
+	margin: 1.2rem 0 0.8rem;
+	text-align: center; }
+	.equation:not(.displaymath) {
+	counter-increment: equation;
+	position: relative; }
+	.equation:not(.displaymath)::after {
+	bottom: 50%;
+	content: "(" counter(equation) ")";
+	line-height: 0;
+	position: absolute;
+	right: 0;
+	top: 50%; }
+
+.references {
+	margin-top: 1.2rem; }
+
+.bio {
+	break-inside: avoid;
+	display: block;
+	position: relative;
+	clear: both;
+	width: 100%;
+	margin-top: 1rem;
+	font-family: "Times New Roman", Times, serif;
+	hyphens: none;
+	font-size: 0.8rem;
+	text-align: justify;
+	line-height: 1.2;
+}
+
+.bio img {
+	display: inline-block;
+	float: left;
+	max-width: 1in;
+	max-height: 1.25in;
+	padding-right: 1rem;
+	padding-bottom: 0.5rem;
+}
+

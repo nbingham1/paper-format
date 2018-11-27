@@ -1,0 +1,53 @@
+@import url("ieee-conf-print.css");
+
+@charset "UTF-8";
+
+@media screen and (max-width: 540px) {
+	html {
+		font-size: 12pt;
+	}
+}
+
+@media screen and (min-width: 540px) {
+	html {
+		font-size: 18pt;
+	}
+}
+
+body {
+	margin: 10% 7% 10% 7%;
+}
+
+.article-body {
+	column-count: 1;
+}
+
+a {
+	color: blue;
+	text-decoration: none;
+}
+
+p, ul, ol, cite {
+	line-height: 1.2;
+}
+
+img {
+	width: initial;
+}
+
+.print-only {
+	display: none;
+	position: absolute;
+}
+
+.web-only {
+	display: initial;
+	position: relative;
+}
+
+.bio img {
+	max-width: initial;
+	max-height: initial;
+	width: 150px;
+	height: auto;
+}
