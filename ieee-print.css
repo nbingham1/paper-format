@@ -273,7 +273,7 @@ small { font-size: 0.8rem; }
 	margin-top: 1rem;
 	padding-top: 0.3rem; }
 	size: 8.5in 11in;
-	margin: 0.68in 0.63in 0.8in 0.63in; }
+	margin: 0.5in 0.62in 0.5in 0.62in; }
 
 .cites > :not(:first-child)::before {
 	content: none; }
@@ -331,9 +331,8 @@ ol ol {
 .title {
 	font-size: 2.4rem;
 	font-variant: normal;
-	height: 7rem;
 	margin-top: 0;
-	margin-bottom: 0; }
+	margin-bottom: 2.0rem; }
 
 .subtitle {
 	font-size: 1.4rem;
