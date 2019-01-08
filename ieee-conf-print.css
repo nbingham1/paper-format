@@ -344,7 +344,9 @@ ol ol {
 
 header {
 	margin-top: 0.0rem;
-	margin-bottom: 3.2rem; }
+	margin-bottom: 3.2rem; 
+	text-align: center;
+}
 
 .footnote {
 	font-size: 0.8rem;
@@ -355,9 +357,13 @@ header {
 	display: none; }
 
 .authors {
-	column-gap: 0; }
-	.authors + .authors {
-	margin-top: 0.6rem; }
+	column-gap: 1in; 
+	display: inline-block;
+}
+
+.authors + .authors {
+	margin-top: 0.6rem;
+}
 
 .author {
 	break-inside: avoid;
