@@ -65,6 +65,11 @@ pre {
 	counter-increment: code;
 }
 
+section.language-prs pre {
+	page-break-inside: auto;
+	break-inside: auto;
+}
+
 figure {
 	display: block;
 	page-break-inside: avoid;
@@ -86,6 +91,17 @@ figcaption {
 
 figcaption::before {
 	content: "Fig. " counter(figure) ". "; }
+
+.graph-wrap {
+	position: relative;
+	display: inline-block;
+}
+
+.graph-label {
+	position: absolute;
+	font-size: 0.6rem;
+}
+
 
 table {
 	font-size: 0.8rem; 
@@ -416,4 +432,5 @@ header {
 	padding-right: 1rem;
 	padding-bottom: 0.5rem;
 }
+
 
