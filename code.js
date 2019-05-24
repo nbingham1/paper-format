@@ -539,6 +539,11 @@ Prism.languages.chp = {
 			{ pattern: /->/g,   replace: '\u2192'}, // →
 			{ pattern: /\|\|/g, replace: '\u2225'}, // ∥
 			{ pattern: /\*\[/g, replace: '\u2217['}, //⁎[
+			{ pattern: /\\\[/g, replace: '['}, //[
+			{ pattern: /\[\]/g, replace: '\u25AF'}, // ▯
+			{ pattern: /\\\*/g, replace: '\u2022'}, // •
+			{ pattern: /\\ring/g,    replace: '\u2E30'}, // ⇓
+			{ pattern: /\.\.\./g, replace: '\u2026'}, // …
 			{ pattern: /~/g,  replace: '\u00AC'}, // ¬
 			{ pattern: /\&/g, replace: '\u2227'}, // ∧
 			{ pattern: /\|/g, replace: '\u2228'}, // ∨
@@ -546,12 +551,9 @@ Prism.languages.chp = {
 			{ pattern: />=/g, replace: '\u2265'}, // ≥
 			{ pattern: /!=/g, replace: '\u2260'}, // ≠
 			{ pattern: /==/g, replace: '='     }, // =
-			{ pattern: /\+(\s*(?:[;,:\|\]\[]|$))/g, replace: '\u21BE$1'}, // ↾
-			{ pattern: /-(\s*(?:[;,:\|\]\[]|$))/g,  replace: '\u21C2$1'}, // ⇂
-			{ pattern: /\[\]/g, replace: '\u25AF'}, // ▯
-			{ pattern: /:([^=])/g,    replace: '|$1'}, // |
-			{ pattern: /\.\.\./g, replace: '\u2026'}, // …
-			{ pattern: /\\\*/g, replace: '\u2022'} // •
+			{ pattern: /:([^=]|$)/g,    replace: '|$1'}, // |
+			{ pattern: /\+(\s*(?:[;,:\]\)\u2225\u2192\u25AF\u2022\u2026\n]|$))/g, replace: '\u21BE$1'}, // ↾
+			{ pattern: /-(\s*(?:[;,:\]\)\u2225\u2192\u25AF\u2022\u2026\n]|$))/g,  replace: '\u21C2$1'} // ⇂
 	],
 	'node_long': { 
 		pattern: /\.{([^}]*)}/g,
