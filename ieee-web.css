@@ -35,6 +35,10 @@ img {
 	width: initial;
 }
 
+th,td {
+	font-size: 14pt;
+}
+
 .print-only {
 	display: none;
 	position: absolute;

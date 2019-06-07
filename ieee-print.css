@@ -114,12 +114,18 @@ table {
 
 thead,tfoot { display: table-row-group; }
 
-th {
+.tsep {
 	border-bottom: 1px solid #000;
+}
+
+th {
+	font-weight: bold;
 }
 
 th,
 td {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 10pt;
 	border-spacing: 0px;	
 	margin: 0 0 0 0;
 	padding: 0.333rem;
