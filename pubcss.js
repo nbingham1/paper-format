@@ -57,10 +57,14 @@ includeHTML = function() {
 					return new Promise(function(resolve, reject) {
 						response.pass.innerHTML = response.text;
 						content = response.pass.childNodes;
-						for (var j = 0; j < content.length; j++) {
-							response.pass.parentNode.insertBefore(content[j], response.pass);
+						if (response.pass.parentNode == null) {
+							console.log(response)
+						} else {
+							for (var j = 0; j < content.length; j++) {
+								response.pass.parentNode.insertBefore(content[j], response.pass);
+							}
+							response.pass.parentNode.removeChild(response.pass);
 						}
-						response.pass.parentNode.removeChild(response.pass);
 						resolve();
 					});
 				}));
