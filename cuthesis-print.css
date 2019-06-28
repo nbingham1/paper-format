@@ -1,0 +1,365 @@
+@import url("proof.css");
+@import url("cite.css");
+
+@charset "UTF-8";
+
+html {
+	font-size: 10pt;
+}
+
+body {
+	font-family: "Times New Roman", Times, serif;
+	hyphens: none;
+	margin: 0% 0% 0% 0%;
+	counter-reset: figure;
+}
+
+body > :first-child {
+	counter-reset: page 1;
+}
+
+a {
+	color: black;
+	text-decoration: none;
+}
+
+img {
+	display: inline-block;
+	max-width: 100%;
+	width: 100%;
+}
+
+.print-only {
+	display: initial;
+	position: relative;
+}
+
+.web-only {
+	display: none;
+	position: absolute;
+}
+
+code {
+	display: inline;
+	font-family: Courier, monospace;
+	text-align: left;
+	white-space: pre-wrap;
+	width: 100%;
+	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+}
+
+pre {
+	display: block;
+	break-inside: avoid;
+	page-break-inside: avoid;
+	font-size: 0.8rem;
+	max-width: calc(100% - 1.0rem);
+	padding: 0.25rem 0.25rem 0.25rem 0.25rem;
+	counter-increment: code;
+}
+
+section {
+	page-break-after: always;
+}
+
+section.language-prs pre {
+	page-break-inside: auto;
+	break-inside: auto;
+}
+
+figure {
+	display: block;
+	page-break-inside: avoid;
+	break-inside: avoid;
+	margin: 0.5rem 0 0.5rem 0;
+	width: 100%;
+	text-align: center;
+	counter-increment: figure;
+}
+
+figcaption {
+	caption-side: bottom;
+	text-align: middle;
+	font: inherit;
+	font-size: 0.8rem;
+	font-weight: normal;
+	margin: 0 0 0.4rem 0;
+}
+
+figcaption::before {
+	content: "Fig. " counter(figure) ". "; }
+
+.graph-wrap {
+	position: relative;
+	display: inline-block;
+}
+
+.graph-label {
+	position: absolute;
+	font-size: 0.6rem;
+}
+
+
+table {
+	font-size: 0.8rem; 
+	page-break-inside: avoid;
+	border-collapse: collapse;
+	border-spacing: 0px;	
+	counter-increment: table;
+	margin: 0.25rem 0 0.75rem 0;
+	width: 100%; }
+
+thead,tfoot { display: table-row-group; }
+
+.tsep {
+	border-bottom: 1px solid #000;
+}
+
+th {
+	font-weight: bold;
+}
+
+th,
+td {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 10pt;
+	border-spacing: 0px;	
+	margin: 0 0 0 0;
+	padding: 0.333rem;
+	text-align: center; }
+
+table > caption {
+	caption-side: bottom;
+	text-align: middle;
+	font: inherit;
+	font-size: 0.8rem;
+	font-weight: normal;
+	margin: 0 0 0.4rem 0;
+}
+
+table > caption::before {
+	content: "Table " counter(table) ". ";
+}
+
+h1, h2, h3, h4, h5, h6 {
+	line-height: 1.9;
+	font-size: 1.2rem;
+	font-family: "Times New Roman", Times, serif;
+	font-variant: normal;
+	font-weight: normal;
+	text-align: left;
+	text-justify: none;
+	break-after: avoid;
+	hyphens: none; }
+
+h1 {
+	text-transform: uppercase;
+	margin: 0 0 2rem 0;
+	text-align: center;
+	page-break-after: avoid;
+}
+
+h2 {
+	font-weight: bold;
+	font-style: italic;
+	margin: 0.1rem 0 0.1rem 0;
+	page-break-after: avoid;
+}
+
+h3 {
+	page-break-after: avoid; 
+	text-indent: 1.5rem;
+	font-style: italic;
+	margin: 0.1rem 0 0.1rem 0; 
+}
+
+h4 {
+	page-break-after: avoid; 
+	text-indent: 2.25rem;
+	font-style: italic;
+	margin: 0.1rem 0 0.1rem 0; 
+}
+
+h5 {
+	page-break-after: avoid; 
+	font-variant: small-caps;
+	margin: 0.1rem 0 0.1rem 0;
+	text-align: center;
+}
+
+h1.counter-skip,
+h1.appendix,
+h1.references {
+	padding-top: 3.6rem;
+}
+
+h1:not(.counter-skip) { counter-increment: section; }
+h1.counter-reset { counter-increment: section; }
+
+h1:not(.counter-skip):not(.appendix):not(.references)::before {
+	display: block;
+	padding-top: 3.6rem;
+	margin-bottom: 1.0rem;
+	text-transform: uppercase;
+	line-height: 1.9;
+	font-size: 1.2rem;
+	font-variant: normal;
+	content: "Chapter " counter(section, decimal); 
+}
+
+h1.appendix:not(.counter-skip)::before {
+	content: "" !important;
+	margin-right: 0 !important;
+}
+
+h1.references:not(.counter-skip)::before {
+	content: "" !important;
+	margin-right: 0 !important;
+}
+
+.counter-skip h1::before {
+	content: "" !important;
+	margin-right: 0 !important;
+}
+
+h1 + h2,
+h1 + * > h2:first-child {
+	margin-top: 0.2rem; }
+
+p {
+	text-align: justify;
+	line-height: 1.5;
+	margin: 0 0 0.3rem 0;
+	text-indent: 1.5rem;
+	font-size: 1.2rem;
+}
+
+q::before { content: '“'; }
+q::after { content: '”'; }
+q > q::before { content: '‘'; }
+q > q::after { content: '’'; }
+
+small { font-size: 0.8rem; }
+
+.footnote {
+	counter-increment: footnote;
+	float: prince-column-footnote;
+	margin-left: .333rem;
+	padding-left: .667rem; }
+	.footnote:footnote-call {
+	content: counter(footnote);
+	font-size: 0.66rem;
+	line-height: none;
+	vertical-align: super; }
+	.footnote:footnote-marker {
+	content: counter(footnote);
+	font-size: 0.66rem;
+	footnote-style-position: inside; }
+
+@page {
+	escape("@")footnotes {
+	border-top: 0.5px solid #000;
+	columns: 1;
+	margin-top: 1rem;
+	padding-top: 0.3rem; }
+	size: 8.5in 11in;
+	margin: 0.5in 0.62in 0.5in 0.62in; }
+
+.cites > :not(:first-child)::before {
+	content: none; }
+
+.cites > :not(:last-child)::after {
+	content: ", "; }
+
+.col-1 { column-count: 1; }
+.col-2 { column-count: 2; }
+.col-3 { column-count: 3; }
+.col-4 { column-count: 4; }
+.col-span { column-span: all; }
+.col-break-after { break-after: always; }
+.col-break-before { break-after: always; }
+
+.page-break-after { page-break-after: always; }
+.page-break-before { page-break-after: always; }
+
+ul {
+	text-align: justify;
+	line-height: 1.2;
+	margin: 0 0 0.25rem 0;
+	padding-left: 1.25rem;
+}
+
+ul ul {
+	margin: 0 0 0 0;
+}
+
+ol {
+	text-align: justify;
+	line-height: 1.2;
+	list-style: decimal outside none;
+	font-style: italic;
+	margin: 0 0 0.25rem 0;
+	padding-left: 1.25rem;
+}
+
+ol ol {
+	list-style: lower-alpha outside none;
+	font-style: italic;
+	margin: 0 0 0 0;
+}
+
+header {
+	padding-top: 4rem;
+	page-break-after: always;
+	line-height: 1.9;
+	font-size: 1.2rem;
+	font-variant: normal;
+	font-weight: normal;
+	text-align: center;
+}
+
+aside {
+	page-break-after: always;
+	padding-top: 50%;
+	padding-bottom: 50%;
+	text-align: center;
+	line-height: 1.9;
+	font-size: 1.2rem;
+	font-variant: normal;
+	font-weight: normal;
+}
+
+.title {
+	text-transform: uppercase;
+	margin-bottom: 18.6rem; }
+
+.subtitle {
+	margin-bottom: 14.0rem;
+}
+
+.footnote {
+	font-size: 0.8rem;
+	font-weight: normal;
+	margin-bottom: -.38in; }
+	.footnote:footnote-call, .footnote:footnote-marker {
+	content: none;
+	display: none; }
+
+.equation {
+	margin: 1.2rem 0 0.8rem;
+	text-align: center; }
+	.equation:not(.displaymath) {
+	counter-increment: equation;
+	position: relative; }
+	.equation:not(.displaymath)::after {
+	bottom: 50%;
+	content: "(" counter(equation) ")";
+	line-height: 0;
+	position: absolute;
+	right: 0;
+	top: 50%; }
+
+.references {
+	margin-top: 1.2rem; }
+
