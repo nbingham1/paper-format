@@ -1,5 +1,4 @@
 @import url("proof.css");
-@import url("cite.css");
 
 @charset "UTF-8";
 
@@ -392,3 +391,30 @@ ol ol {
 .references {
 	margin-top: 1.2rem; }
 
+cite {
+	display: block;
+	position: relative;
+	line-height: 1.5;
+	font-style: normal;
+	font-size: 1rem;
+	text-align: justify;
+	break-inside: avoid;
+	margin: 0 0 0.3rem 0;
+}
+
+.cite-txt {
+	display: table-cell;
+	text-indent: 0;
+	width: calc(100% - 3rem);
+	font-style: normal;
+	font-size: 1rem;
+}
+
+.cite-ref {
+	display: table-cell;
+	text-indent: 0;
+	width: 2.5rem;
+	font-style: normal;
+	font-size: 1rem;
+	text-align: center;
+}
