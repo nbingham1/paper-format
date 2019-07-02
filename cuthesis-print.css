@@ -9,13 +9,15 @@ html {
 
 body {
 	font-family: "Times New Roman", Times, serif;
+	line-height: 1.9;
+	font-size: 1.2rem;
+	font-variant: normal;
+	font-weight: normal;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
 	hyphens: none;
-	margin: 0% 0% 0% 0%;
 	counter-reset: figure;
-}
-
-body > :first-child {
-	counter-reset: page 1;
+	counter-reset: section;
 }
 
 a {
@@ -39,6 +41,27 @@ img {
 	position: absolute;
 }
 
+.toc-page {
+	float: right;
+}
+.toc-elem {
+	display: block;
+	width: 100%;
+	border-bottom: 1px solid #cccccc;
+	/*background-image: radial-gradient(circle at center, #000 0.9px, rgba(255,255,255,0) 1.8px);
+	background-position: bottom;
+	background-size: 0.4rem 0.74rem;
+	background-repeat: repeat-x;*/
+}
+.toc-elem div {
+	vertical-align: top;
+	display: inline-block;
+	background-color: white;
+	padding-left: 0.25rem;
+	padding-right: 0.25rem;
+	max-width: 80%;
+}
+
 code {
 	display: inline;
 	font-family: Courier, monospace;
@@ -53,14 +76,10 @@ pre {
 	display: block;
 	break-inside: avoid;
 	page-break-inside: avoid;
-	font-size: 0.8rem;
+	font-size: 1.0rem;
 	max-width: calc(100% - 1.0rem);
 	padding: 0.25rem 0.25rem 0.25rem 0.25rem;
 	counter-increment: code;
-}
-
-section {
-	page-break-after: always;
 }
 
 section.language-prs pre {
@@ -81,25 +100,11 @@ figure {
 figcaption {
 	caption-side: bottom;
 	text-align: middle;
-	font: inherit;
-	font-size: 0.8rem;
-	font-weight: normal;
 	margin: 0 0 0.4rem 0;
 }
 
 figcaption::before {
 	content: "Fig. " counter(figure) ". "; }
-
-.graph-wrap {
-	position: relative;
-	display: inline-block;
-}
-
-.graph-label {
-	position: absolute;
-	font-size: 0.6rem;
-}
-
 
 table {
 	font-size: 0.8rem; 
@@ -143,6 +148,7 @@ table > caption::before {
 }
 
 h1, h2, h3, h4, h5, h6 {
+	content: counter(page);
 	line-height: 1.9;
 	font-size: 1.2rem;
 	font-family: "Times New Roman", Times, serif;
@@ -157,49 +163,47 @@ h1 {
 	text-transform: uppercase;
 	margin: 0 0 2rem 0;
 	text-align: center;
-	page-break-after: avoid;
 }
 
 h2 {
 	font-weight: bold;
 	font-style: italic;
 	margin: 0.1rem 0 0.1rem 0;
-	page-break-after: avoid;
 }
 
 h3 {
-	page-break-after: avoid; 
 	text-indent: 1.5rem;
 	font-style: italic;
 	margin: 0.1rem 0 0.1rem 0; 
 }
 
 h4 {
-	page-break-after: avoid; 
 	text-indent: 2.25rem;
 	font-style: italic;
 	margin: 0.1rem 0 0.1rem 0; 
 }
 
 h5 {
-	page-break-after: avoid; 
 	font-variant: small-caps;
 	margin: 0.1rem 0 0.1rem 0;
 	text-align: center;
 }
 
-h1.counter-skip,
-h1.appendix,
-h1.references {
-	padding-top: 3.6rem;
+section.cover {
+	padding-top: 1in;
+	padding-bottom: 1in;
+	text-align: center;
 }
 
-h1:not(.counter-skip) { counter-increment: section; }
-h1.counter-reset { counter-increment: section; }
+section.cover p {
+	text-align: center;
+}
 
-h1:not(.counter-skip):not(.appendix):not(.references)::before {
+section.counter-skip:not(.cover) { padding-top: 3.6rem; }
+
+section:not(.counter-skip) { counter-increment: section; }
+section:not(.counter-skip) h1::before {
 	display: block;
-	padding-top: 3.6rem;
 	margin-bottom: 1.0rem;
 	text-transform: uppercase;
 	line-height: 1.9;
@@ -208,19 +212,8 @@ h1:not(.counter-skip):not(.appendix):not(.references)::before {
 	content: "Chapter " counter(section, decimal); 
 }
 
-h1.appendix:not(.counter-skip)::before {
+section.counter-skip h1::before {
 	content: "" !important;
-	margin-right: 0 !important;
-}
-
-h1.references:not(.counter-skip)::before {
-	content: "" !important;
-	margin-right: 0 !important;
-}
-
-.counter-skip h1::before {
-	content: "" !important;
-	margin-right: 0 !important;
 }
 
 h1 + h2,
@@ -264,7 +257,56 @@ small { font-size: 0.8rem; }
 	margin-top: 1rem;
 	padding-top: 0.3rem; }
 	size: 8.5in 11in;
-	margin: 0.5in 0.62in 0.5in 0.62in; }
+	/*margin: 0in 0in 0in 0in;*/
+	margin: 0.5in 0.62in 0.5in 0.62in;
+}
+
+@media print {
+	section {
+		margin: 0 0 0 0;
+		display: block;
+		min-height: calc(9.75in - 3.6rem);
+		page-break-inside: avoid;
+	}
+	section.cover:not(.page-skip) {
+		padding-top: 4.5in;
+		padding-bottom: 0;
+		min-height: 5.25in;
+	}
+	section.page-skip:not(.cover) {
+		min-height: calc(9.95in - 3.6rem);
+	}
+	section.page-skip.cover {
+		padding-top: 4.5in;
+		padding-bottom: 0;
+		min-height: 5.45in;
+	}
+	body {
+		display: table;
+		table-layout: fixed;
+		height: auto;
+	}
+	header { display: table-header-group; }
+	article { display: table-row-group; }
+  footer {
+		page-break-before: avoid;
+		page-break-inside: avoid;
+		display: table-footer-group;
+		height: 0.25in;
+		text-align: center;
+		font-size: 1.2rem;
+  }
+	footer::after {
+		page-break-before: avoid;
+		page-break-inside: avoid;
+		content: counter(page);
+		counter-increment: page;
+	}
+
+	/*a.xref:after {
+		content: leader('.') target-counter(attr(href), page);
+	}*/
+}
 
 .cites > :not(:first-child)::before {
 	content: none; }
@@ -296,46 +338,33 @@ ul ul {
 
 ol {
 	text-align: justify;
-	line-height: 1.2;
+	line-height: 1.5;
 	list-style: decimal outside none;
-	font-style: italic;
+	font-size: 1.2rem;
 	margin: 0 0 0.25rem 0;
-	padding-left: 1.25rem;
+	padding-left: 2.5rem;
 }
 
 ol ol {
 	list-style: lower-alpha outside none;
-	font-style: italic;
+	font-size: 1.2rem;
 	margin: 0 0 0 0;
 }
 
-header {
-	padding-top: 4rem;
-	page-break-after: always;
-	line-height: 1.9;
-	font-size: 1.2rem;
-	font-variant: normal;
-	font-weight: normal;
-	text-align: center;
-}
-
-aside {
-	page-break-after: always;
-	padding-top: 50%;
-	padding-bottom: 50%;
-	text-align: center;
-	line-height: 1.9;
-	font-size: 1.2rem;
-	font-variant: normal;
-	font-weight: normal;
-}
-
 .title {
+	text-align: center;
 	text-transform: uppercase;
-	margin-bottom: 18.6rem; }
+	padding-top: 4rem;
+	padding-bottom: 4rem;
+	margin-bottom: 14.6rem; }
 
 .subtitle {
+	text-align: center;
 	margin-bottom: 14.0rem;
+}
+
+.author {
+	text-align: center;
 }
 
 .footnote {
