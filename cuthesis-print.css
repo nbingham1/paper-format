@@ -418,3 +418,8 @@ cite {
 	font-size: 1rem;
 	text-align: center;
 }
+
+abbr {
+	border: none;
+	text-decoration: none;
+}
