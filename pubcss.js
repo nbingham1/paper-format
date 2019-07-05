@@ -126,13 +126,27 @@ formatLinks = function() {
 	return new Promise(function(resolve, reject) {
 		var links = document.getElementsByTagName("a");
 		for (var i = 0; i < links.length; i++) {
-			url = links[i].getAttribute("href");
-			if (url && url.charAt(0) == '#') {
-				var ref = document.querySelector(url);
-				if (ref) {
-					var tag = ref.tagName.toLowerCase();
-					var cls = ref.className.toLowerCase();
-					var id = ref.getAttribute('ref-num');
+			raw = links[i].getAttribute("href");
+
+			if (raw && raw.charAt(0) == '#') {
+				urls = raw.split(' - ');
+				var ref = [null, null];
+				if (urls[0])
+					ref[0] = document.querySelector(urls[0]);
+				if (urls[1]) {
+					ref[1] = document.querySelector(urls[1]);
+					links[i].setAttribute("href", urls[0]);
+				}
+
+				if (ref[0]) {
+					var tag = ref[0].tagName.toLowerCase();
+					var cls = ref[0].className.toLowerCase();
+					var id = ref[0].getAttribute('ref-num');
+					
+					if (ref[1]) {
+						id += "-" + ref[1].getAttribute('ref-num');
+					}
+
 					if (tag == "cite") {
 						links[i].innerHTML += "["+id+"]";
 					}
@@ -170,12 +184,34 @@ var pageHeight = 11 - 2*0.5;
 var pageWidth = 8.5 - 2*0.62;
 var pageBreakTags = ["figure", "pre", "table", "img"];
 var flowBranchTags = ["subsection", "subsubsection", "subsubsubsection", "div"];
-var flowLeafTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "figcaption", "caption"];
-var linesPerPage = 38.9;
+var flowLeafTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "figcaption", "caption", "cite"];
+var PtsPerPage = 466.8;
 var charsPerLine = 105.4;
 var charsPerIndent = 4;
 var titlePerPage = .8125/pageHeight;
 var codesPerPage = 2.0/(9*pageHeight);
+
+textHeight = function(elem) {
+	var text = elem.textContent ? elem.textContent : elem.innerText;
+	var font = parseInt(window.getComputedStyle(el, null).getPropertyValue('font-size'));
+
+	var words = text.split(' ');
+	var lines = 0;
+	var line = charsPerIndent-1;
+	for (var j = 0; j < words.length; j++) {
+		if (line + words[j].length > charsPerLine) {
+			lines += 1;
+			line = words[j].length;
+		} else {
+			if (line > 0)
+				line += 1;
+			line += words[j].length;
+		}
+	}
+	lines += line/charsPerLine;
+	height = font*Math.ceil(lines)/PtsPerPage + 3/(ppi*pageHeight);
+	return height;
+}
 
 pageFlowNodes = function(elems, off) {
 	var offset = off;
@@ -185,23 +221,8 @@ pageFlowNodes = function(elems, off) {
 		} else if (flowLeafTags.includes(elems[i].tagName.toLowerCase())) {
 			elems[i].setAttribute("page", offset);
 			var height = elems[i].offsetHeight/(pageHeight*ppi);
-			if (elems[i].tagName.toLowerCase() in ["p", "caption", "figcaption"]) {
-				var text = elems[i].textContent ? elems[i].textContent : elems[i].innerText;
-				var words = text.split(' ');
-				var lines = 0;
-				var line = charsPerIndent-1;
-				for (var j = 0; j < words.length; j++) {
-					if (line + words[j].length > charsPerLine) {
-						lines += 1;
-						line = words[j].length;
-					} else {
-						if (line > 0)
-							line += 1;
-						line += words[j].length;
-					}
-				}
-				lines += line/charsPerLine;
-				height = Math.ceil(lines)/linesPerPage + 3/(ppi*pageHeight);
+			if (elems[i].tagName.toLowerCase() in ["p", "caption", "figcaption", "cite"]) {
+				height = textHeight(elems[i]);
 			} else if (elems[i].tagName.toLowerCase() == "h1") {
 				height = titlePerPage;
 			}
@@ -256,61 +277,6 @@ pageFlow = function() {
 		offset = pageFlowSection(sections[i], offset);
 	}
 }
-
-/*sectionOffset = function(el, ppi) {
-	var sec = document.getElementsByTagName("section");
-	var off = 0;
-	for (var i = 0; i < sec.length; i++) {
-		if (sec[i] == el)
-			return off;
-
-		var h = sec[i].clientHeight/ppi;
-		if (h < pageHeight) {
-			off += pageHeight;
-		} else {
-			off += h;
-		}
-	}
-
-	return off;
-};
-
-var getAbsPosition = function(el){
-    var el2 = el;
-    var curtop = 0;
-    var curleft = 0;
-    if (document.getElementById || document.all) {
-        do  {
-            curleft += el.offsetLeft-el.scrollLeft;
-            curtop += el.offsetTop-el.scrollTop;
-            el = el.offsetParent;
-            el2 = el2.parentNode;
-            while (el2 != el) {
-                curleft -= el2.scrollLeft;
-                curtop -= el2.scrollTop;
-                el2 = el2.parentNode;
-            }
-        } while (el.offsetParent);
-
-    } else if (document.layers) {
-        curtop += el.y;
-        curleft += el.x;
-    }
-    return [curtop, curleft];
-};
-
-getOffset = function(el, ppi) {
-	var sec = el;
-	var result = getAbsPosition(el)[0];
-	while (sec != null && (sec.nodeType == Node.TEXT_NODE || sec.tagName.toLowerCase() != "section")) {
-		sec = sec.parentNode;
-	}
-	result -= getAbsPosition(sec)[0];
-	result /= ppi;
-	result += sectionOffset(sec, ppi);
-	return result;
-}*/
-
 
 contentsOfSection = function(level, elem, ins, ppi) {
 	var h1 = elem.getElementsByTagName("h" + level);
