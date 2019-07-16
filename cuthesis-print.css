@@ -27,7 +27,7 @@ a {
 img {
 	display: inline-block;
 	max-width: 100%;
-	width: 100%;
+	max-height: 100%;
 }
 
 .print-only {
@@ -256,7 +256,7 @@ small { font-size: 0.8rem; }
 	padding-top: 0.3rem; }
 	size: 8.5in 11in;
 	/*margin: 0in 0in 0in 0in;*/
-	margin: 0.5in 0.62in 0.5in 0.62in;
+	margin: 1.0in 1.0in 0.62in 1.0in;
 }
 
 @media print {

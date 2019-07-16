@@ -129,12 +129,12 @@ formatLinks = function() {
 			raw = links[i].getAttribute("href");
 
 			if (raw && raw.charAt(0) == '#') {
-				urls = raw.split(' - ');
+				urls = raw.split('-#');
 				var ref = [null, null];
 				if (urls[0])
 					ref[0] = document.querySelector(urls[0]);
 				if (urls[1]) {
-					ref[1] = document.querySelector(urls[1]);
+					ref[1] = document.querySelector('#' + urls[1]);
 					links[i].setAttribute("href", urls[0]);
 				}
 
