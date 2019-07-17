@@ -50,7 +50,7 @@ a {
 	text-decoration: none;
 }
 
-p, ul, ol, cite {
+p, ul, ol, cite, figcaption, caption {
 	line-height: 1.2;
 }
 

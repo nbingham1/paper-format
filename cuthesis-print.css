@@ -98,6 +98,10 @@ figure {
 figcaption {
 	caption-side: bottom;
 	text-align: middle;
+	line-height: 1.5;
+	font: inherit;
+	font-size: 1.0rem;
+	font-weight: normal;
 	margin: 0 0 0.4rem 0;
 }
 
@@ -135,8 +139,9 @@ td {
 table > caption {
 	caption-side: bottom;
 	text-align: middle;
+	line-height: 1.5;
 	font: inherit;
-	font-size: 0.8rem;
+	font-size: 1.0rem;
 	font-weight: normal;
 	margin: 0 0 0.4rem 0;
 }
