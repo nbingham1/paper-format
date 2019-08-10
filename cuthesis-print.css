@@ -15,8 +15,8 @@ body {
 	margin: 0 0 0 0;
 	padding: 0 0 0 0;
 	hyphens: none;
-	counter-reset: figure;
 	counter-reset: section;
+	counter-reset: image;
 }
 
 a {
@@ -92,7 +92,7 @@ figure {
 	margin: 0.5rem 0 0.5rem 0;
 	width: 100%;
 	text-align: center;
-	counter-increment: figure;
+	counter-increment: image;
 }
 
 figcaption {
@@ -106,7 +106,7 @@ figcaption {
 }
 
 figcaption::before {
-	content: "Fig. " counter(figure) ". "; }
+	content: "Fig. " counter(image) ": "; }
 
 table {
 	font-size: 0.8rem; 
@@ -151,7 +151,6 @@ table > caption::before {
 }
 
 h1, h2, h3, h4, h5, h6 {
-	content: counter(page);
 	line-height: 1.9;
 	font-size: 1.2rem;
 	font-family: "Times New Roman", Times, serif;
@@ -261,7 +260,7 @@ small { font-size: 0.8rem; }
 	padding-top: 0.3rem; }
 	size: 8.5in 11in;
 	/*margin: 0in 0in 0in 0in;*/
-	margin: 1.0in 1.0in 0.62in 1.0in;
+	margin: 1.0in 1.0in 1.0in 1.0in;
 }
 
 @media print {
@@ -299,12 +298,12 @@ small { font-size: 0.8rem; }
 		text-align: center;
 		font-size: 1.2rem;
   }
-	footer::after {
+	/*footer::after {
 		page-break-before: avoid;
 		page-break-inside: avoid;
 		content: counter(page);
 		counter-increment: page;
-	}
+	}*/
 
 	/*a.xref:after {
 		content: leader('.') target-counter(attr(href), page);
@@ -396,7 +395,7 @@ ol ol {
 	margin-top: 1.2rem; }
 
 cite {
-	display: block;
+	display: table;
 	position: relative;
 	line-height: 1.5;
 	font-style: normal;
