@@ -103,8 +103,13 @@ formatAnchors = function() {
 		}
 
 		elems = document.getElementsByTagName("figure");
+		var j = 1;
 		for (var i = 0; i < elems.length; i++) {
-			elems[i].setAttribute("ref-num", i+1);
+			var text = elems[i].getElementsByTagName("figcaption");
+			if (text.length > 0) {
+				elems[i].setAttribute("ref-num", j);
+				j++;
+			}
 		}
 
 		elems = document.getElementsByTagName("table");
@@ -346,37 +351,39 @@ listOfFigures = function() {
 			var ol = document.createElement("ol");
 			for (var i = 0; i < figures.length; i++) {
 				var page = figures[i].getAttribute("page");
-				var text = figures[i].getElementsByTagName("figcaption")[0];
-				text = text.textContent ? text.textContent : text.innerText;
-				var id = figures[i].getAttribute('id');
+				var text = figures[i].getElementsByTagName("figcaption");
+				if (text.length > 0) {
+					text = text[0].textContent ? text[0].textContent : text[0].innerText;
+					var id = figures[i].getAttribute('id');
 
-				var li = document.createElement("li");
-				var cont = document.createElement("div");
-				cont.setAttribute("class", "toc-elem");
-				var chap = document.createElement("div");
-				var textNode;
-				if (text != null) {
-					textNode = document.createTextNode(text);
-				} else {
-					textNode = document.createTextNode("Anonymous");
+					var li = document.createElement("li");
+					var cont = document.createElement("div");
+					cont.setAttribute("class", "toc-elem");
+					var chap = document.createElement("div");
+					var textNode;
+					if (text != null) {
+						textNode = document.createTextNode(text);
+					} else {
+						textNode = document.createTextNode("Anonymous");
+					}
+					if (id != null) {
+						var link = document.createElement("a");
+						link.appendChild(textNode);
+						
+						link.setAttribute("href", "#" + id);
+						link.setAttribute("class", "xref");
+						chap.appendChild(link);
+					} else {
+						chap.appendChild(textNode);
+					}
+					cont.appendChild(chap);
+					var pagenum = document.createElement("div");
+					pagenum.setAttribute("class", "toc-page");
+					pagenum.appendChild(document.createTextNode(Math.floor(page)));
+					cont.appendChild(pagenum);
+					li.appendChild(cont); 
+					ol.appendChild(li);
 				}
-				if (id != null) {
-					var link = document.createElement("a");
-					link.appendChild(textNode);
-					
-					link.setAttribute("href", "#" + id);
-					link.setAttribute("class", "xref");
-					chap.appendChild(link);
-				} else {
-					chap.appendChild(textNode);
-				}
-				cont.appendChild(chap);
-				var pagenum = document.createElement("div");
-				pagenum.setAttribute("class", "toc-page");
-				pagenum.appendChild(document.createTextNode(Math.floor(page)));
-				cont.appendChild(pagenum);
-				li.appendChild(cont); 
-				ol.appendChild(li);
 			}
 			
 			toc[0].appendChild(ol);
@@ -392,37 +399,39 @@ listOfTables = function() {
 			var ol = document.createElement("ol");
 			for (var i = 0; i < tables.length; i++) {
 				var page = tables[i].getAttribute("page");
-				var text = tables[i].getElementsByTagName("caption")[0];
-				text = text.textContent ? text.textContent : text.innerText;
-				var id = tables[i].getAttribute('id');
+				var text = tables[i].getElementsByTagName("caption");
+				if (text.length > 0) {
+					text = text[0].textContent ? text[0].textContent : text[0].innerText;
+					var id = tables[i].getAttribute('id');
 
-				var li = document.createElement("li");
-				var cont = document.createElement("div");
-				cont.setAttribute("class", "toc-elem");
-				var chap = document.createElement("div");
-				var textNode;
-				if (text != null) {
-					textNode = document.createTextNode(text);
-				} else {
-					textNode = document.createTextNode("Anonymous");
+					var li = document.createElement("li");
+					var cont = document.createElement("div");
+					cont.setAttribute("class", "toc-elem");
+					var chap = document.createElement("div");
+					var textNode;
+					if (text != null) {
+						textNode = document.createTextNode(text);
+					} else {
+						textNode = document.createTextNode("Anonymous");
+					}
+					if (id != null) {
+						var link = document.createElement("a");
+						link.appendChild(textNode);
+						
+						link.setAttribute("href", "#" + id);
+						link.setAttribute("class", "xref");
+						chap.appendChild(link);
+					} else {
+						chap.appendChild(textNode);
+					}
+					cont.appendChild(chap);
+					var pagenum = document.createElement("div");
+					pagenum.setAttribute("class", "toc-page");
+					pagenum.appendChild(document.createTextNode(Math.floor(page)));
+					cont.appendChild(pagenum);
+					li.appendChild(cont); 
+					ol.appendChild(li);
 				}
-				if (id != null) {
-					var link = document.createElement("a");
-					link.appendChild(textNode);
-					
-					link.setAttribute("href", "#" + id);
-					link.setAttribute("class", "xref");
-					chap.appendChild(link);
-				} else {
-					chap.appendChild(textNode);
-				}
-				cont.appendChild(chap);
-				var pagenum = document.createElement("div");
-				pagenum.setAttribute("class", "toc-page");
-				pagenum.appendChild(document.createTextNode(Math.floor(page)));
-				cont.appendChild(pagenum);
-				li.appendChild(cont); 
-				ol.appendChild(li);
 			}
 		
 			toc[0].appendChild(ol);
