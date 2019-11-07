@@ -324,7 +324,7 @@ contentsOfSection = function(level, elem, ins, ppi) {
 				li.appendChild(cont); 
 
 				var sec = h1[i].parentNode;
-				if (sec.nodeType != Node.TEXT_NODE) {
+				if (sec.nodeType != Node.TEXT_NODE && level < 2) {
 					contentsOfSection(level+1, sec, li, ppi);
 				}
 				ol.appendChild(li);
