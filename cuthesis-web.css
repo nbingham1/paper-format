@@ -1,0 +1,80 @@
+@import url("cuthesis-print.css");
+
+@charset "UTF-8";
+
+@media screen and (max-width: 540px) {
+	html {
+		font-size: 12pt;
+	}
+}
+
+@media screen and (min-width: 540px) {
+	html {
+		font-size: 18pt;
+	}
+}
+
+body {
+	margin: 10% 7% 10% 7%;
+}
+
+header {
+	padding-top: 0;
+}
+
+aside {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.title {
+	margin-bottom: 0;
+	padding-top: 0;
+}
+
+.subtitle {
+	margin-bottom: 0;
+}
+
+.author {
+	margin-bottom: 0;
+}
+
+.copyright {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+a {
+	color: blue;
+	text-decoration: none;
+}
+
+p, ul, ol, cite, figcaption, caption {
+	line-height: 1.2;
+}
+
+img {
+	width: initial;
+}
+
+th,td {
+	font-size: 14pt;
+}
+
+.print-only {
+	display: none;
+	position: absolute;
+}
+
+.web-only {
+	display: initial;
+	position: relative;
+}
+
+.bio img {
+	max-width: initial;
+	max-height: initial;
+	width: 150px;
+	height: auto;
+}
