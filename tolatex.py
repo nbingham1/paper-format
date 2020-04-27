@@ -41,6 +41,7 @@ def convert_code(content, lang, caption=False):
 		result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
 	else:
 		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
+		result = re.sub(r'\\ring', r'$\\circ$', result, flags=re.MULTILINE)
 		result = re.sub(r'\|\|', r'$\\parallel$', result, flags=re.MULTILINE)
 		result = re.sub(r'\*\[', r'$*[$', result, flags=re.MULTILINE)
 		result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
@@ -50,8 +51,8 @@ def convert_code(content, lang, caption=False):
 		result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
 		result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
 		result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
-		result = re.sub(r'\+(\s*(?:[;,:\|\]\[]|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
-		result = re.sub(r'-(\s*(?:[;,:\|\]\[]|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
+		result = re.sub(r'\+(\s*(?:[;,:\]\)\$\n]|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
+		result = re.sub(r'-(\s*(?:[;,:\]\)\$\n]|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\[\]', r'$\\vrectangle$', result, flags=re.MULTILINE)
 		result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
 		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
