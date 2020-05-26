@@ -18,6 +18,18 @@ body {
 	counter-reset: section_id figure_id table_id code_id;
 }
 
+#font-test {
+	position: absolute;
+	visibility: hidden;
+	height: auto;
+	width: auto;
+	white-space: nowrap;
+	line-height: 1;
+	font-size: 1rem;
+	font-variant: normal;
+	font-weight: normal;
+}
+
 a {
 	color: black;
 	text-decoration: none;
