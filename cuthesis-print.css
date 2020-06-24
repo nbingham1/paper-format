@@ -158,8 +158,8 @@ thead > :last-child {
 	border-bottom: 3px solid black;
 }
 
-td {
-	border-bottom: 2px solid #DDDDDD;
+table.lined td {
+	border-bottom: 1px solid black;
 }
 
 th code {
