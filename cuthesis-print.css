@@ -152,7 +152,14 @@ tr .blue {
 
 th {
 	font-weight: bold;
+}
+
+thead > :last-child {
 	border-bottom: 3px solid black;
+}
+
+td {
+	border-bottom: 2px solid #DDDDDD;
 }
 
 th code {
