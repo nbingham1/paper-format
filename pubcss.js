@@ -175,6 +175,20 @@ formatLinks = function() {
 	});
 };
 
+var font = " .,?!'\":;[]1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+var font_width = [];
+
+measureFont = function() {
+	test = document.getElementById("font-test");
+	for (var j = 1; j < font.length; j++) {
+		test.innerHTML = font[j];
+		font_width[font[j]] = test.clientWidth;
+	}
+	test.innerhtml = ". .";
+	font_width[font[0]] = test.clientWidth - font_width['.']*2;
+	console.log(font_width);
+}
+
 pixelsPerInch = function(elem) {
 	var test = document.createElement("div");
 	test.style.height="1in";
