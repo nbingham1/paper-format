@@ -13,15 +13,15 @@ class Cmd:
 		if self.inline:
 			return self.emit()[0]
 		else:
-			return self.emit()[0] + "\n"
+			return self.emit()[0] + u"\n"
 
-	def emit(self, tab = ""):
-		result = "\\" + self.name
+	def emit(self, tab = u""):
+		result = u"\\" + self.name
 		for arg in self.args:
 			if isinstance(arg, tuple):
-				result += "[" + str(arg[0]) + "]"
+				result += u"[" + str(arg[0]) + u"]"
 			else:
-				result += "{" + str(arg) + "}"
+				result += u"{" + str(arg) + u"}"
 		return [result]
 
 class Env:
@@ -39,9 +39,9 @@ class Env:
 
 	def __str__(self):
 		if self.inline:
-			return "".join(self.emit())
+			return u"".join(self.emit())
 		else:
-			return "\n".join(self.emit()) + "\n"
+			return u"\n".join(self.emit()) + u"\n"
 
 	def __lshift__(self, other):
 		if isinstance(other, (list, tuple)):
@@ -50,18 +50,18 @@ class Env:
 			self.content.append(other)
 		return other
 
-	def emit(self, tab = ""):
-		result = "\\begin{" + self.name + "}"
+	def emit(self, tab = u""):
+		result = u"\\begin{" + self.name + u"}"
 		for arg in self.args:
 			if isinstance(arg, tuple):
-				result += "[" + str(arg[0]) + "]"
+				result += u"[" + str(arg[0]) + u"]"
 			else:
-				result += "{" + str(arg) + "}"
+				result += u"{" + str(arg) + u"}"
 		return [result] + [
 			str(elem)
 			for elem in self.content
 		] + [
-			"\\end{" + self.name + "}"
+			u"\\end{" + self.name + u"}"
 		]
 
 class Group:
@@ -87,7 +87,7 @@ class Group:
 			self.content.append(other)
 		return other
 
-	def emit(self, tab = ""):
+	def emit(self, tab = u""):
 		return [
 			str(elem)
 			for elem in self.content
@@ -96,14 +96,14 @@ class Group:
 class Section(Cmd):
 	def __init__(self, title, level = 0, usr = None):
 		Cmd.__init__(self,
-			name = ("sub"*level + "section"),
+			name = (u"sub"*level + u"section"),
 			args = [title],
 			usr = usr)
 
 class Input(Cmd):
 	def __init__(self, path, usr = None):
 		Cmd.__init__(self,
-			name = "input",
+			name = u"input",
 			args = [path],
 			usr = usr)
 
