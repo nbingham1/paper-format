@@ -167,6 +167,8 @@ formatLinks = function() {
 					else {
 						links[i].innerHTML += id;
 					}
+				} else if (links[i].innerHTML.length == 0) {
+					links[i].innerHTML += "[??]"
 				}
 			}
 		}
