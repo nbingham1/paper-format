@@ -303,6 +303,7 @@ contentsOfSection = function(level, elem, ins, ppi) {
 	var h1 = elem.getElementsByTagName("h" + level);
 	if (h1.length > 0) {
 		var ol = document.createElement("ol");
+		var value = 1;
 		for (var i = 0; i < h1.length; i++) {
 			if (!h1[i].parentNode.classList.contains("page-skip")) {
 				var page = h1[i].getAttribute("page");
@@ -322,6 +323,13 @@ contentsOfSection = function(level, elem, ins, ppi) {
 				cont.setAttribute("class", "toc-elem");
 				var chap = document.createElement("div");
 				var textNode = document.createTextNode(text.nodeValue);
+				if (text.nodeValue == "Preface") {
+					li.setAttribute("class", "skip");
+				} else {
+					li.setAttribute("value", value);
+					value += 1;
+				}
+
 				if (id != null) {
 					var link = document.createElement("a");
 					link.appendChild(textNode);

@@ -422,6 +422,11 @@ ol ol {
 	margin: 0 0 0 0;
 }
 
+ol li.skip {
+	list-style-type:none;
+	counter-increment:none;
+}
+
 .title {
 	text-align: center;
 	text-transform: uppercase;
