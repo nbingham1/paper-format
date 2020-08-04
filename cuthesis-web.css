@@ -78,3 +78,5 @@ th,td {
 	width: 150px;
 	height: auto;
 }
+
+section.counter-skip:not(.cover) { padding-top: 3.6rem; }

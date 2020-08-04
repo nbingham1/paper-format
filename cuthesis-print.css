@@ -252,8 +252,7 @@ section.cover p {
 	text-align: center;
 }
 
-section.counter-skip:not(.cover) { padding-top: 3.6rem; }
-
+section.counter-skip:not(.cover) { padding-top: 0; }
 section:not(.counter-skip) { counter-increment: section_id; }
 section:not(.counter-skip) h1::before {
 	display: block;
@@ -317,22 +316,15 @@ small { font-size: 0.8rem; }
 @media print {
 	section {
 		margin: 0 0 0 0;
-		display: block;
-		min-height: calc(9.75in - 3.6rem);
-		page-break-inside: avoid;
+		page-break-after: always;
 	}
 	section.cover:not(.page-skip) {
 		padding-top: 4.5in;
 		padding-bottom: 0;
-		min-height: 5.25in;
-	}
-	section.page-skip:not(.cover) {
-		min-height: calc(9.95in - 3.6rem);
 	}
 	section.page-skip.cover {
 		padding-top: 4.5in;
 		padding-bottom: 0;
-		min-height: 5.45in;
 	}
 	body {
 		display: table;
@@ -464,9 +456,6 @@ ol li.skip {
 	position: absolute;
 	right: 0;
 	top: 50%; }
-
-.references {
-	margin-top: 1.2rem; }
 
 cite {
 	display: table;
