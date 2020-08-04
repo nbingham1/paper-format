@@ -1,65 +1,77 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from pyhtml.parse import *
 import sys
 import os.path
 import re
 import latex
+from lxml import etree
 
 latex_figures = []
+latex_citations = []
+latex_tables = []
+
 latex_files = []
 latex_path = []
 latex_unresolved = {}
 latex_outpath = ""
 
-def escape(content):
+def escape(content, space=True):
 	if isinstance(content, list):
-		return [escape(item) for item in content]
+		return [escape(item, space) for item in content]
 	else:
-		return str(content).replace('_', '\\_').replace('$', '\\$').replace('%', '\\%').replace('&', '\\&')
+		content = str(content)
+		if content.strip():
+			return content.replace(u'_', u'\\_').replace(u'$', u'\\$').replace(u'%', u'\\%').replace(u'&', u'\\&')
+		elif space:
+			return content.replace(u'\n', u'').replace(u'\r', u'')
+		else:
+			return ""
 
 def convert_code(content, lang, caption=False):
 	result = "".join([str(c) for c in content]).strip()
 	if lang in ["prs"]:
-		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
-		result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
-		result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
-		result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
-		result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
-		result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
-		result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
-		result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
-		result = re.sub(r'\+(\s*(?:\n|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
-		result = re.sub(r'-(\s*(?:\n|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
-		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 		if not caption:
+			result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
+			result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
+			result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
+			result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
+			result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
+			result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
+			result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
+			result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
+			result = re.sub(r'\+(\s*(?:\n|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
+			result = re.sub(r'-(\s*(?:\n|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
+			result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z0-9_]*)', r'\1$_{\\text{\2}}$', result, flags=re.MULTILINE)
-			result = re.sub(r'_([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)
+			#result = re.sub(r'_([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)
 		else:
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
 		result = re.sub(r'\{\$', r'{', result, flags=re.MULTILINE)
 		result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
 	else:
-		result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
-		result = re.sub(r'\\ring', r'$\\circ$', result, flags=re.MULTILINE)
-		result = re.sub(r'\|\|', r'$\\parallel$', result, flags=re.MULTILINE)
-		result = re.sub(r'\*\[', r'$*[$', result, flags=re.MULTILINE)
-		result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
-		result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
-		result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
-		result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
-		result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
-		result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
-		result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
-		result = re.sub(r'\+(\s*(?:[;,:\]\)\$\n]|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
-		result = re.sub(r'-(\s*(?:[;,:\]\)\$\n]|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
-		result = re.sub(r'\[\]', r'$\\vrectangle$', result, flags=re.MULTILINE)
-		result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
-		result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 		if not caption:
+			result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
+			result = re.sub(r'\\ring', r'$\\circ$', result, flags=re.MULTILINE)
+			result = re.sub(r'\\par', r'$\\parallel$', result, flags=re.MULTILINE)
+			result = re.sub(r'\|\|', r'$\\parallel$', result, flags=re.MULTILINE)
+			result = re.sub(r'\*\[', r'$*[$', result, flags=re.MULTILINE)
+			result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
+			result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
+			result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
+			result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
+			result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
+			result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
+			result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
+			result = re.sub(r'\+(\s*(?:[;,:\]\)\$\n]|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
+			result = re.sub(r'-(\s*(?:[;,:\]\)\$\n]|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
+			result = re.sub(r'\[\]', r'$\\vrectangle$', result, flags=re.MULTILINE)
+			result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
+			result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z0-9_]*)', r'\1$_{\\text{\2}}$', result, flags=re.MULTILINE)
 			result = re.sub(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)	
 		else:
+			result = re.sub(r'\\par', r'||', result, flags=re.MULTILINE)
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
 		result = re.sub(r'([^\*])\[', r'\1$[$', result, flags=re.MULTILINE)
 		result = re.sub(r'\]', r'$]$', result, flags=re.MULTILINE)
@@ -77,6 +89,9 @@ def process_usr(tag, result, parent, is_arg=False):
 	if tag.name == "header":
 		result.usr["header"] = True
 
+	if tag.name == "figure":
+		result.usr["figure"] = True
+
 	if is_arg:
 		result.usr["arg"] = True
 		
@@ -90,7 +105,7 @@ def process_usr(tag, result, parent, is_arg=False):
 
 def default2latex(tag, parent):
 	if tag.name not in ["section", "subsection", "document"]:
-		print tag
+		print(tag.name)
 
 	result = latex.Group()
 	process_usr(tag, result, parent)
@@ -207,7 +222,7 @@ def p2latex(tag, parent):
 			result << tolatex(tag.content[2:], result)
 			return result
 	else:
-		result = latex.Group(end="\n")
+		result = latex.Group(end="\n\n")
 		process_usr(tag, result, parent)
 		result << tolatex(tag.content, result)
 		return result;
@@ -225,11 +240,11 @@ def code2latex(tag, parent):
 		lang = ""
 
 	if "pre" in parent.usr:
-		page = latex.Env("minipage", args=[latex.Group(["0.95", latex.Cmd("linewidth", inline=True)])])
+		page = latex.Env("minipage", args=[latex.Group(["0.95", latex.Cmd("linewidth", inline=True)])], inline=False)
 		process_usr(tag, page, parent)
 		result = latex.Env("lstlisting", args=[("mathescape",)])
 		process_usr(tag, result, parent)
-		result << convert_code(tag.content, lang)
+		result << convert_code(tag.content, lang, "arg" in parent.usr)
 		page << result
 		pre = latex.Group()
 		pre << latex.Cmd("noindent")
@@ -248,20 +263,25 @@ citation = re.compile("^#[a-z]*[0-9]{4}")
 def a2latex(tag, parent):
 	if "href" in tag.attrs:
 		href = tag.attrs["href"]
-		if citation.match(href):
-			result = latex.Cmd("cite", [href[1:]], inline=True)
-			process_usr(tag, result, parent, True)
-			return result
-		elif len(href) > 0 and href[0] == "#":
-			result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
-			process_usr(tag, result, parent, True)
-			if tag.content:
-				result.args.append(latex.Group(tolatex(tag.content, parent)))
+		if len(href) > 0 and href[0] == "#":
+			if href[1:] in latex_citations:
+				result = latex.Cmd("cite", [href[1:]], inline=True)
+				process_usr(tag, result, parent, True)
 			elif href[1:] in latex_figures:
+				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				process_usr(tag, result, parent, True)
 				result.args.append("Fig. " + str(latex_figures.index(href[1:])+1))
+			elif tag.content:
+				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				process_usr(tag, result, parent, True)
+				result.args.append(latex.Group(tolatex(tag.content, parent)))
 			elif href[1:] not in latex_unresolved:
+				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				process_usr(tag, result, parent, True)
 				latex_unresolved[href[1:]] = [result]
 			else:
+				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				process_usr(tag, result, parent, True)
 				latex_unresolved[href[1:]].append(result)
 			return result
 		else:
@@ -282,6 +302,7 @@ def cite2latex(tag, parent):
 	result = latex.Group()
 	process_usr(tag, result, parent)
 	if "id" in tag.attrs:
+		latex_citations.append(tag.attrs["id"])
 		result << latex.Cmd("bibitem", [tag.attrs["id"]])
 	result << tolatex(tag.content, result)
 	return result
@@ -342,6 +363,8 @@ def center2latex(tag, parent):
 	return result
 
 def table2latex(tag, parent):
+	if "id" in tag.attrs:
+		latex_tables.append(tag.attrs["id"])
 	result = latex.Env("table", args=[("ht",)])
 	process_usr(tag, result, parent)
 	table = latex.Env("tabular")
@@ -414,10 +437,40 @@ def figcaption2latex(tag, parent):
 def img2latex(tag, parent):
 	if "src" in tag.attrs:
 		src = tag.attrs["src"]
-		result = latex.Cmd("includegraphics")
-		process_usr(tag, result, parent, True)
-		result.args = [("width=1.0\\columnwidth",), src]
-		return result
+		if ".svg" in src:
+			width = None
+			if "style" in tag.attrs and tag.attrs["style"]:
+				width = tag.attrs["style"].get("max-width")
+				if "min" in width:
+					width = width[4:-1].split(',')
+					width = width[0] if '%' in width[0] else width[1]
+				if "%" in width:
+					width = float(width[0:-1])/100.0
+				else:
+					width = None
+			src = src.replace(".svg", ".pdf_tex")
+			result = latex.Group()
+			process_usr(tag, result, parent, True)
+			if width:
+				page = latex.Env("minipage", args=[latex.Group([str(width), latex.Cmd("columnwidth", inline=True)])], inline=True)
+				process_usr(tag, page, parent)
+
+				page << latex.Cmd("centering", inline=False)
+				page << latex.Cmd("def", inline=True)
+				page << latex.Cmd("svgwidth", args=["\\columnwidth"], inline=False)
+				page << latex.Cmd("input", args=[src])
+				
+				result << page
+			else:
+				result << latex.Cmd("def", inline=True)
+				result << latex.Cmd("svgwidth", args=["\\columnwidth"], inline=False)
+				result << latex.Cmd("input", args=[src], inline=False)
+			return result
+		else:
+			result = latex.Cmd("includegraphics")
+			process_usr(tag, result, parent, True)
+			result.args = [("width=1.0\\columnwidth",), src]
+			return result
 	else:
 		return default2latex(tag, parent)
 
@@ -426,6 +479,14 @@ def br2latex(tag, parent):
 
 def mark2latex(tag, parent):
 	result = latex.Cmd("hl", inline=True)
+	process_usr(tag, result, parent, True)
+	result.args = [latex.Group()]
+	process_usr(tag, result.args[0], result)
+	result.args[0] << tolatex(tag.content, result.args[0])
+	return result
+
+def i2latex(tag, parent):
+	result = latex.Cmd("emph", inline=True)
 	process_usr(tag, result, parent, True)
 	result.args = [latex.Group()]
 	process_usr(tag, result.args[0], result)
@@ -466,6 +527,7 @@ handlers = {
 	'img': img2latex,
 	'br': br2latex,
 	'mark': mark2latex,
+	'i': i2latex,
 }
 
 def tolatex(tag, parent):
@@ -489,12 +551,12 @@ def tolatex(tag, parent):
 			if tag.name in handlers:
 				return handlers[tag.name](tag, parent)
 			else:
-				print tag
+				print(tag)
 				return ""
 		else:
 			return ""
 	else:
-		return escape(tag)
+		return escape(tag, "figure" not in parent.usr)
 
 def convert_file(path):
 	name = os.path.splitext(os.path.basename(path))[0]
@@ -504,14 +566,16 @@ def convert_file(path):
 	
 	latex_path.append(os.path.dirname(path))
 
-	parser = Parser()
+	eparser = etree.HTMLParser(target = Parser())
 	with open(path, 'r') as fptr:
-		parser.feed(fptr.read())
-
+		data = fptr.read()
+		eparser.feed(data)
+	parser = eparser.close()
+	
 	with open(os.path.join(latex_outpath, name + ".tex"), 'w') as fptr:
 		article = parser.syntax["article"]
 		if article:
-			print >>fptr, "\n".join([
+			print("\n".join([
 				"\\documentclass[journal]{IEEEtran}",
 				"\\usepackage[pdftex]{graphicx}",
 				"\\usepackage{amsmath}",
@@ -536,11 +600,12 @@ def convert_file(path):
 				"}",
 				"\\urlstyle{same}",
 				"\input{chp}",
-			])
+			]), file=fptr)
 
-			print >>fptr, tolatex(article[0], None)
+			result = tolatex(article[0], None)
 		else:
-			print >>fptr, tolatex(parser.syntax, None)
+			result = tolatex(parser.syntax, None)
+		print(result, file=fptr)
 
 	del latex_path[-1]
 
@@ -553,6 +618,8 @@ for arg in sys.argv[1:]:
 		if flag == "-o" or flag == "--output":
 			latex_outpath = arg
 		flag = None
+	elif "ref" in arg:
+		paths.insert(0, arg)
 	else:
 		paths.append(arg)
 
