@@ -547,7 +547,6 @@ Prism.languages.chp = {
 			{ pattern: /\[\]/g, replace: '\u25AF'}, // ▯
 			{ pattern: /\\\*/g, replace: '\u2022'}, // •
 			{ pattern: /\\ring/g,    replace: '\u2E30'}, // ⇓
-			{ pattern: /\.\.\./g, replace: '\u2026'}, // …
 			{ pattern: /~/g,  replace: '\u00AC'}, // ¬
 			{ pattern: /\&/g, replace: '\u2227'}, // ∧
 			{ pattern: /\|/g, replace: '\u2228'}, // ∨
@@ -557,6 +556,7 @@ Prism.languages.chp = {
 			{ pattern: /==/g, replace: '='     }, // =
 			{ pattern: /([^\\]):([^=]|$)/g,    replace: '$1|$2'}, // |
 			{ pattern: /\\:/g,    replace: ':'}, // :
+			{ pattern: /\.\.\./g, replace: '\u2026'}, // …
 			{ pattern: /\+(\s*(?:[\/;,:\]\)\u2225\u2192\u25AF\u2022\u2026\u2227\u2228\u2264\u2265\u2260=\n!\?*]|$))/g, replace: '\u21BE$1'}, // ↾
 			{ pattern: /-(\s*(?:[\/;,:\]\)\u2225\u2192\u25AF\u2022\u2026\u2227\u2228\u2264\u2265\u2260=\n!\?*]|$))/g,  replace: '\u21C2$1'} // ⇂
 	],
