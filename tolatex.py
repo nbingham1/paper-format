@@ -6,6 +6,7 @@ import os.path
 import re
 import latex
 from lxml import etree
+from shutil import copyfile
 
 latex_figures = []
 latex_citations = []
@@ -126,8 +127,7 @@ def div2latex(tag, parent):
 
 	if "src" in tag.attrs:
 		src = tag.attrs["src"]
-		name = os.path.basename(src)
-		splt = os.path.splitext(name)
+		splt = os.path.splitext(src)
 		result = latex.Input(splt[0])	
 		process_usr(tag, result, parent)
 		convert_file(src)
@@ -251,7 +251,7 @@ def code2latex(tag, parent):
 		pre << page
 		return pre
 	else:
-		result = latex.Cmd("protect\\lstinline", args=[("mathescape, columns=fixed",)], inline=True)
+		result = latex.Cmd("protect\\lstinline", args=[("mathescape, columns=fixed",)], inline=True, d_open=u'!', d_close=u'!')
 		process_usr(tag, result, parent)
 		group = latex.Group()
 		process_usr(tag, group, result)
@@ -437,6 +437,15 @@ def figcaption2latex(tag, parent):
 def img2latex(tag, parent):
 	if "src" in tag.attrs:
 		src = tag.attrs["src"]
+		
+		outsrc = os.path.join(latex_outpath, src)
+		if not os.path.exists(os.path.dirname(outsrc)):
+			try:
+				os.makedirs(os.path.dirname(outsrc))
+			except OSError as exc: # Guard against race condition
+				if exc.errno != errno.EEXIST:
+					raise
+
 		if ".svg" in src:
 			width = None
 			if "style" in tag.attrs and tag.attrs["style"]:
@@ -448,6 +457,9 @@ def img2latex(tag, parent):
 					width = float(width[0:-1])/100.0
 				else:
 					width = None
+
+			outsrc = outsrc.replace(".svg", ".pdf")
+			os.system("inkscape -D -z --file=\"" + src + "\" --export-pdf=\"" + outsrc + "\" --export-latex")
 			src = src.replace(".svg", ".pdf_tex")
 			result = latex.Group()
 			process_usr(tag, result, parent, True)
@@ -467,6 +479,7 @@ def img2latex(tag, parent):
 				result << latex.Cmd("input", args=[src], inline=False)
 			return result
 		else:
+			copyfile(src, outsrc)
 			result = latex.Cmd("includegraphics")
 			process_usr(tag, result, parent, True)
 			result.args = [("width=1.0\\columnwidth",), src]
@@ -559,24 +572,32 @@ def tolatex(tag, parent):
 		return escape(tag, "figure" not in parent.usr)
 
 def convert_file(path):
-	name = os.path.splitext(os.path.basename(path))[0]
+	name = os.path.join(latex_outpath, os.path.splitext(path)[0])
 
-	if len(latex_path) > 0:
-		path = os.path.join(latex_path[-1], path)
+	#if len(latex_path) > 0:
+	#	path = os.path.join(latex_path[-1], path)
 	
-	latex_path.append(os.path.dirname(path))
+	#latex_path.append(os.path.dirname(path))
 
 	eparser = etree.HTMLParser(target = Parser())
 	with open(path, 'r') as fptr:
 		data = fptr.read()
 		eparser.feed(data)
 	parser = eparser.close()
+
+	if not os.path.exists(os.path.dirname(name)):
+		try:
+			os.makedirs(os.path.dirname(name))
+		except OSError as exc: # Guard against race condition
+			if exc.errno != errno.EEXIST:
+				raise
 	
-	with open(os.path.join(latex_outpath, name + ".tex"), 'w') as fptr:
+	with open(name + ".tex", 'w') as fptr:
 		article = parser.syntax["article"]
 		if article:
 			print("\n".join([
 				"\\documentclass[journal]{IEEEtran}",
+				"\\nonstopmode",
 				"\\usepackage[pdftex]{graphicx}",
 				"\\usepackage{amsmath}",
 				"\\usepackage{dirtytalk}",
@@ -607,7 +628,7 @@ def convert_file(path):
 			result = tolatex(parser.syntax, None)
 		print(result, file=fptr)
 
-	del latex_path[-1]
+	#del latex_path[-1]
 
 flag = None
 paths = []

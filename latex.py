@@ -3,11 +3,15 @@ class Cmd:
 							 name,
 							 args = None,
 							 usr = None,
-							 inline = False):
+							 inline = False,
+							 d_open = u'{',
+							 d_close = u'}'):
 		self.name = name
 		self.args = args if args else []
 		self.usr = usr if usr else {}
 		self.inline = inline
+		self.d_open = d_open
+		self.d_close = d_close
 
 	def __str__(self):
 		if self.inline:
@@ -21,7 +25,7 @@ class Cmd:
 			if isinstance(arg, tuple):
 				result += u"[" + str(arg[0]) + u"]"
 			else:
-				result += u"{" + str(arg) + u"}"
+				result += self.d_open + str(arg) + self.d_close
 		return [result]
 
 class Env:

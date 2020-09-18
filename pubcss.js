@@ -42,43 +42,34 @@ function request(opts) {
   });
 }
 
-includeHTML = function() {
-	return new Promise(function(resolve, reject) {
-		var promises = [];
-		var includes = document.getElementsByTagName("div");
-		for (var i = 0; i < includes.length; i++) {
-			var file = includes[i].getAttribute("src");
-			if (file) {
-				promises.push(request({
-					method: "GET",
-					url: file,
-					pass: includes[i]
-				}).then(function (response) {
-					return new Promise(function(resolve, reject) {
-						response.pass.innerHTML = response.text;
-						content = response.pass.childNodes;
-						if (response.pass.parentNode == null) {
-							//console.log(response)
-						} else {
-							for (var j = 0; j < content.length; j++) {
-								response.pass.parentNode.insertBefore(content[j], response.pass);
-							}
-							response.pass.parentNode.removeChild(response.pass);
-						}
-						resolve();
-					});
-				}));
-			}
-		}
+includeHTML = function(elem) {
+	var promises = [];
+	var includes = elem.getElementsByTagName("div");
+	for (var i = 0; i < includes.length; i++) {
+		var file = includes[i].getAttribute("src");
+		if (file) {
+			promises.push(request({
+				method: "GET",
+				url: file,
+				pass: includes[i]
+			}).then(function (response) {
+				response.pass.innerHTML = response.text;
+				content = response.pass.childNodes;
+				var result = []
+				if (response.pass.parentNode != null) {
+					for (var j = 0; j < content.length; j++) {
+						var node = response.pass.parentNode.insertBefore(content[j], response.pass);
+						result.push(includeHTML(node));
+					}
+					response.pass.parentNode.removeChild(response.pass);
+				}
 
-		if (promises.length > 0) {
-			Promise.all(promises)
-				.then(includeHTML)
-				.then(resolve);
-		} else {
-			resolve();
+				return Promise.allSettled(result);
+			}));
 		}
-	});
+	}
+
+	return Promise.allSettled(promises);
 };
 
 formatSection = function(section, id, type) {
@@ -186,15 +177,6 @@ pixelsPerInch = function(elem) {
 	return ppi;
 }
 
-function getTextWidth(text, font) {
-	// re-use canvas object for better performance
-	var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
-	var context = canvas.getContext("2d");
-	context.font = font;
-	var metrics = context.measureText(text);
-	return metrics.width;
-}
-
 var ppi = 96;//pixelsPerInch(toc[0]);
 var pageHeight = 11 - 2*0.5;
 var pageWidth = 8.5 - 2*0.62;
@@ -203,42 +185,61 @@ var flowBranchTags = ["subsection", "subsubsection", "subsubsubsection", "div", 
 var flowLeafTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "figcaption", "caption", "cite", "dt", "b", "code", "abbr", "a"];
 var titlePerPage = .8125/pageHeight;
 var codesPerPage = 2.0/(9*pageHeight);
+var hasCanvasAccess = true;
 
 textHeight = function(elem) {
-	var text = elem.textContent ? elem.textContent : elem.innerText;
-	var font = window.getComputedStyle(elem, null).getPropertyValue('font');
-	var fontsize = parseInt(window.getComputedStyle(elem, null).getPropertyValue('font-size'));
-	var width = getTextWidth(text, font);
-	return fontsize*Math.ceil(width/(ppi*pageWidth))/(ppi*pageHeight);
+	if (hasCanvasAccess) {
+		var text = elem.textContent ? elem.textContent : elem.innerText;
+		const cvs = textHeight.cvs || document.getElementById("mycanvas");
+		const myctx = cvs.getContext("2d");
+		myctx.font = "12pt Times New Roman";
+		var mt = myctx.measureText(text);
+		if (mt != false) {
+			return (1.5*14.0*Math.ceil(mt.width/(ppi*pageWidth)) + 3)/(ppi*pageHeight);
+		} else {
+			hasCanvasAccess = false;
+			return elems[i].offsetHeight/(ppi*pageHeight);
+		}
+	} else {
+		return elems[i].offsetHeight/(ppi*pageHeight);
+	}
 }
 
 pageFlowNodes = function(elems, off) {
 	var offset = off;
 	for (var i = 0; i < elems.length; i++) {
+		var name = elems[i].tagName;
+		if (name != null) {
+			name = name.toLowerCase();
+		}
+
 		if (elems[i].tagName == null) {
 			//offset += elems[i].offsetHeight/(pageHeight*ppi);
-		} else if (flowLeafTags.includes(elems[i].tagName.toLowerCase())) {
+		} else if (flowLeafTags.includes(name)) {
 			elems[i].setAttribute("page", offset);
-			var height = elems[i].offsetHeight/(pageHeight*ppi);
-			if (elems[i].tagName.toLowerCase() == "h1") {
+
+			var height = 0;
+			if (name == "h1") {
 				height = titlePerPage;
-			} else if (elems[i].tagName.toLowerCase() in ["p", "caption", "figcaption", "cite", "a"]) {
+			} else if (["p", "caption", "figcaption", "cite", "a"].includes(name)) {
 				height = textHeight(elems[i]);
+			} else {
+				height = elems[i].offsetHeight/(pageHeight*ppi);
 			}
 
 			elems[i].setAttribute("debug_height", height*ppi*pageHeight);
 			offset += height;
-		} else if (pageBreakTags.includes(elems[i].tagName.toLowerCase())) {
+		} else if (pageBreakTags.includes(name)) {
 			var height;
-			if (elems[i].tagName.toLowerCase() == "figure") {
+			if (name == "figure") {
 				height = pageFlowNodes(elems[i].childNodes, 0);
-			} else if (elems[i].tagName.toLowerCase() == "img") {
+			} else if (name == "img") {
 				height = elems[i].naturalHeight/(pageHeight*ppi);
 				var width = elems[i].naturalWidth/ppi;
 				if (width > pageWidth) {
 					height *= pageWidth/width;
 				}
-			} else if (elems[i].tagName.toLowerCase() == "pre") {
+			} else if (name == "pre") {
 				var text = elems[i].textContent ? elems[i].textContent : elems[i].innerText;
 				lines = (text.match(/\n/g) || '').length + 1;
 				height = lines*codesPerPage + 0.5/(ppi*pageHeight);
@@ -250,23 +251,32 @@ pageFlowNodes = function(elems, off) {
 			}
 
 			elems[i].setAttribute("page", offset);
-			if (elems[i].tagName.toLowerCase() == "figure") {
+			if (name == "figure") {
 				offset = pageFlowNodes(elems[i].childNodes, offset);
 			} else {
 				offset += height;
 				elems[i].setAttribute("debug_height", height*ppi*pageHeight);
 			}
-		} else if (!elems[i].classList.contains("toc-page") && flowBranchTags.includes(elems[i].tagName.toLowerCase())) {
+		} else if (!elems[i].classList.contains("toc-page") && flowBranchTags.includes(name)) {
 			elems[i].setAttribute("page", offset);
+
 			offset = pageFlowNodes(elems[i].childNodes, offset);
+		} else if (name == "br") {
+			offset += 1.5*12.0/(ppi*pageHeight);
 		} else {
-			console.log(elems[i].tagName);
+			console.log(elems[i]);
 		}
 	}
 	return offset;
 }
 
 pageFlowSection = function(el, off) {
+	if (el.hasAttribute("page")) {
+		off = parseInt(el.getAttribute("page"), 10);
+	} else {
+		el.setAttribute("page", off);
+	}
+
 	el.setAttribute("page", off);
 	return Math.ceil(pageFlowNodes(el.childNodes, off));
 }
@@ -567,7 +577,3 @@ listOfAbbreviations = function() {
 	});
 }
 
-
-loadPubCSS = function() {
-	return includeHTML().then(formatAnchors).then(formatLinks);
-}
