@@ -210,16 +210,23 @@ textWidth = function(elem) {
 		}
 		const cvs = textWidth.cvs || document.getElementById("mycanvas");
 		const myctx = cvs.getContext("2d");
-		myctx.font = "12pt Times New Roman";
+		if (elem.tagName != null && elem.tagName.toLowerCase() == "cite") {
+			myctx.font = "10pt Times New Roman";
+		} else {
+			myctx.font = "12pt Times New Roman";
+		}
 		var mt = myctx.measureText(text);
 		if (mt != false) {
 			return mt.width/ppi;
 		} else {
 			hasCanvasAccess = false;
-			return elems[i].offsetWidth/ppi;
 		}
+	}
+
+	if (elem.tagName == null) {
+		return 0.079545455*elem.length;
 	} else {
-		return elems[i].offsetWidth/ppi;
+		return elem.offsetWidth/ppi;
 	}
 }
 
@@ -238,37 +245,54 @@ tableWidth = function(elem) {
 }
 
 textLines = function(elem, width) {
+	/*var text = [];
+	if (typeof elem === "string") {
+		text = elem.split(' ');
+	} else {
+		text = (elem.textContent ? elem.textContent : elem.innerText).split(' ');
+	}
+
+	var lines = 1;
+	var line = "";
+	for (var i = 0; i < text.length; i++) {
+		if (i == 0) {
+			line += "\t"
+		} else {
+			line += " "
+		}
+		line += text[i];
+		var lineWidth = textWidth(line);
+		if (textWidth(line) > width) {
+			lines += 1;
+			line = text[i];
+		}
+	}
+	return lines;*/
 	return Math.ceil((textWidth(elem) + 0.25)/width);
 }
 
-textSize = function(elem, offset) {
-	var width = pageWidth;
-	if (elem.parentNode.tagName.toLowerCase() == "table") {
-		width = tableWidth(elem.parentNode);
-	} else if (elem.parentNode.tagName.toLowerCase() == "dd") {
-		width -= 0.5;
-	}
-
-	remainder = (Math.ceil(offset) - offset)*pageHeight/lineHeight;
+textSize = function(elem, bound, line, offset) {
+	remainder = (Math.ceil(offset) - offset)*pageHeight/line;
 	if (remainder == 0) {
-		remainder = pageHeight/lineHeight;
+		remainder = pageHeight/line;
 	}
 
 	if (remainder < 1) {
 		offset = Math.ceil(offset);
-		remainder = pageHeight/lineHeight;
+		remainder = pageHeight/line;
 	}
-	lines = textLines(elem, width);
-	var height = lines*lineHeight + 5.0/ppi;
+	lines = textLines(elem, bound);
+	var height = lines*line + 3.0/ppi;
 	if (lines > remainder) {
-		height += (remainder - Math.floor(remainder))*lineHeight;
+		height += (remainder - Math.floor(remainder))*line;
 	}
-	elem.setAttribute("debug_width", width);
+	elem.setAttribute("debug_lines", lines);
+	elem.setAttribute("debug_bound", bound);
 	elem.setAttribute("debug_height", height);
-	return [width, height];
+	return [bound, height];
 }
 
-imgSize = function(elem) {
+imgSize = function(elem, bound) {
 	var imgwidth = elem.naturalWidth;
 	var imgheight = elem.naturalHeight;
 	if (imgwidth == 0 || imgheight == 0) {
@@ -279,10 +303,10 @@ imgSize = function(elem) {
 	var width = 0;
 	var height = 0;
 	if (elem.style.width != "") {
-		width = parseInt(elem.style.width, 10)*pageWidth/100;
+		width = parseInt(elem.style.width, 10)*bound/100;
 		height = width*(imgheight/imgwidth);
 	} else if (elem.style.maxWidth != "") {
-		width = parseInt(elem.style.maxWidth, 10)*pageWidth/100;
+		width = parseInt(elem.style.maxWidth, 10)*bound/100;
 		if (imgwidth/ppi < width) {
 			width = imgwidth/ppi;
 			height = imgheight/ppi;
@@ -290,28 +314,28 @@ imgSize = function(elem) {
 			height = width*(imgheight/imgwidth);
 		}
 	} else {
-		if (imgwidth/ppi < pageWidth) {
+		if (imgwidth/ppi < bound) {
 			height = imgheight/ppi;
 			width = imgwidth/ppi;
 		} else {
-			width = pageWidth;
-			height = pageWidth*(imgheight/imgwidth);
+			width = bound;
+			height = bound*(imgheight/imgwidth);
 		}
 	}
-	height += 5.0/ppi;
+	height += 3.0/ppi;
 	elem.setAttribute("debug_width", width);
 	elem.setAttribute("debug_height", height);
 	return [width, height];
 }
 
-preSize = function(elem) {
-	var width = pageWidth;
+preSize = function(elem, bound) {
+	var width = bound;
 	if (elem.style.width != "") {
 		width *= parseInt(elem.style.width, 10)/100;
 	}
 
 	var text = elem.textContent ? elem.textContent : elem.innerText;
-	var height = 5.0/ppi;
+	var height = 0;
 	lines = text.split('\n');
 	for (var j = 0; j < lines.length; j++) {
 		height += textLines(lines[j], width)*codeHeight;
@@ -321,7 +345,7 @@ preSize = function(elem) {
 	return [width, height];
 }
 
-figSize = function(elems) {
+figSize = function(elems, bound) {
 	var offset_h = 0;
 	var offset_v = 0;
 	var maxHeight = 0;
@@ -333,11 +357,11 @@ figSize = function(elems) {
 
 		var size = [0,0];
 		if (name == "figcaption") {
-			size = textSize(elems[i], offset_v);
+			size = textSize(elems[i], bound, 24.0/ppi, offset_v);
 		} else if (name == "img") {
-			size = imgSize(elems[i]);
+			size = imgSize(elems[i], bound);
 		} else if (name == "pre") {
-			size = preSize(elems[i]);
+			size = preSize(elems[i], bound);
 		}
 
 		if (name != null) {
@@ -345,7 +369,7 @@ figSize = function(elems) {
 		}
 
 		offset_h += size[0];
-		if (offset_h > pageWidth) {
+		if (offset_h > bound) {
 			offset_h = size[0];
 			offset_v += maxHeight;
 			maxHeight = size[1];
@@ -361,10 +385,10 @@ figSize = function(elems) {
 	}
 
 	offset_v += maxHeight;
-	return [pageWidth, offset_v];
+	return [bound, offset_v];
 }
 
-pageFlowNodes = function(elems, off) {
+pageFlowNodes = function(elems, width, off) {
 	var offset = off;
 	for (var i = 0; i < elems.length; i++) {
 		var name = elems[i].tagName;
@@ -379,10 +403,14 @@ pageFlowNodes = function(elems, off) {
 			if (name == "h1") {
 				height = titlePerPage;
 			} else if (["p", "caption", "figcaption", "cite", "a"].includes(name)) {
-				height = textSize(elems[i], offset)[1]/pageHeight;
+				var line = 24.0/ppi;
+				if (["cite"].includes(name)) {
+					line = 20.0/ppi;
+				}
+				height = textSize(elems[i], width, line, offset)[1]/pageHeight;
 			} else if (["tr"].includes(name)) {
 				height = lineHeight*1.25/pageHeight;
-			} else if (["dt"].includes(name)) {
+			} else if (["dt", "h2", "h3", "h4"].includes(name)) {
 				height = lineHeight*2.5/pageHeight;
 			} else {
 				height = elems[i].offsetHeight/(pageHeight*ppi);
@@ -393,13 +421,13 @@ pageFlowNodes = function(elems, off) {
 		} else if (pageBreakTags.includes(name)) {
 			var height;
 			if (name == "figure") {
-				height = figSize(elems[i])[1]/pageHeight;
+				height = figSize(elems[i].childNodes, width)[1]/pageHeight;
 			} else if (name == "img") {
-				height = imgSize(elems[i])[1]/pageHeight;
+				height = imgSize(elems[i], width)[1]/pageHeight;
 			} else if (name == "pre") {
-				height = preSize(elems[i])[1]/pageHeight;
+				height = preSize(elems[i], width)[1]/pageHeight;
 			} else if (name == "table") {
-				height = pageFlowNodes(elems[i].childNodes,0);
+				height = pageFlowNodes(elems[i].childNodes, Math.min(tableWidth(elems[i]), width), 0);
 			} else {
 				height = elems[i].offsetHeight/(pageHeight*ppi);
 			}
@@ -415,8 +443,11 @@ pageFlowNodes = function(elems, off) {
 			} else {
 				elems[i].setAttribute("page", offset);
 			}
+			var subwidth = width;
+			if (name == "dd")
+				subwidth -= 0.5;
 
-			offset = pageFlowNodes(elems[i].childNodes, offset);
+			offset = pageFlowNodes(elems[i].childNodes, subwidth, offset);
 		} else if (name == "br") {
 			offset += lineHeight/pageHeight;
 		} else {
@@ -434,7 +465,7 @@ pageFlowSection = function(el, off) {
 	}
 
 	el.setAttribute("page", off);
-	return Math.ceil(pageFlowNodes(el.childNodes, off));
+	return Math.ceil(pageFlowNodes(el.childNodes, pageWidth, off));
 }
 
 pageFlow = function() {
