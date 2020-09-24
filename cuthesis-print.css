@@ -280,6 +280,10 @@ p {
 	font-size: 1.2rem;
 }
 
+li p {
+	text-indent: 0;
+}
+
 q::before { content: '“'; }
 q::after { content: '”'; }
 q > q::before { content: '‘'; }
