@@ -258,13 +258,17 @@ pageFlowNodes = function(elems, off) {
 				elems[i].setAttribute("debug_height", height*ppi*pageHeight);
 			}
 		} else if (!elems[i].classList.contains("toc-page") && flowBranchTags.includes(name)) {
-			elems[i].setAttribute("page", offset);
+			if (elems[i].hasAttribute("page") && elems[i].getAttribute("page") != "") {
+				offset = parseInt(elems[i].getAttribute("page"), 10);
+			} else {
+				elems[i].setAttribute("page", offset);
+			}
 
 			offset = pageFlowNodes(elems[i].childNodes, offset);
 		} else if (name == "br") {
 			offset += 1.5*12.0/(ppi*pageHeight);
 		} else {
-			console.log(elems[i]);
+			//console.log(elems[i]);
 		}
 	}
 	return offset;

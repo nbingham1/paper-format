@@ -319,12 +319,15 @@ small { font-size: 0.8rem; }
 		page-break-after: always;
 	}
 	section.cover:not(.page-skip) {
-		padding-top: 4.5in;
+		padding-top: 4in;
 		padding-bottom: 0;
 	}
 	section.page-skip.cover {
-		padding-top: 4.5in;
+		padding-top: 4in;
 		padding-bottom: 0;
+	}
+	section#dedication {
+		padding-top: 3in;
 	}
 	body {
 		display: table;
