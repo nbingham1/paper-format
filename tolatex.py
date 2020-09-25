@@ -305,6 +305,7 @@ def cite2latex(tag, parent):
 		latex_citations.append(tag.attrs["id"])
 		result << latex.Cmd("bibitem", [tag.attrs["id"]])
 	result << tolatex(tag.content, result)
+	result << "\n"
 	return result
 
 def q2latex(tag, parent):
