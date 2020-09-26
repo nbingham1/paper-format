@@ -1,12 +1,14 @@
 #!/usr/bin/python3
 
 from pyhtml.parse import *
+from pyhtml import html
 import sys
 import os.path
 import re
 import latex
 from lxml import etree
 from shutil import copyfile
+import importlib
 
 latex_figures = []
 latex_citations = []
@@ -16,6 +18,7 @@ latex_files = []
 latex_path = []
 latex_unresolved = {}
 latex_outpath = ""
+latex_module = None
 
 def escape(content, space=True):
 	if isinstance(content, list):
@@ -28,6 +31,12 @@ def escape(content, space=True):
 			return content.replace(u'\n', u'').replace(u'\r', u'')
 		else:
 			return ""
+
+def escape_ref(content):
+	return content.replace(u'\n', u'').replace(u'\r', u'').replace(u'$', u'\\$').replace(u'%', u'\\%').replace(u'&', u'\\&')	
+
+def remove_linebreaks(content):
+	return str(content).replace(u'\n', u' ').replace(u'\r', u'')
 
 def convert_code(content, lang, caption=False):
 	result = "".join([str(c) for c in content]).strip()
@@ -87,9 +96,6 @@ def process_usr(tag, result, parent, is_arg=False):
 	if tag.name == "pre":
 		result.usr["pre"] = True
 
-	if tag.name == "header":
-		result.usr["header"] = True
-
 	if tag.name == "figure":
 		result.usr["figure"] = True
 
@@ -105,7 +111,7 @@ def process_usr(tag, result, parent, is_arg=False):
 				result.usr["author"] = True
 
 def default2latex(tag, parent):
-	if tag.name not in ["section", "subsection", "document"]:
+	if tag.name not in ["section", "subsection", "subsubsection", "div", "document", "html", "body"]:
 		print(tag.name)
 
 	result = latex.Group()
@@ -120,11 +126,6 @@ def article2latex(tag, parent):
 	return result
 
 def div2latex(tag, parent):
-	if "class" in tag.attrs:
-		cls = tag.attrs["class"].split()
-	else:
-		cls = []
-
 	if "src" in tag.attrs:
 		src = tag.attrs["src"]
 		splt = os.path.splitext(src)
@@ -132,53 +133,8 @@ def div2latex(tag, parent):
 		process_usr(tag, result, parent)
 		convert_file(src)
 		return result
-	elif "author" in cls:
-		result = latex.Cmd("author")
-		process_usr(tag, result, parent, True)
-		result.args = [latex.Cmd("IEEEauthorblockA")]
-		process_usr(tag, result.args[0], result, True)
-		result.args[0].args = tolatex(tag.content, result.args[0])
-		return result
-	elif "authors" in cls:
-		result = latex.Group([], "\n")
-		process_usr(tag, result, parent)
-		result << tolatex(tag.content, result)
-		return result
-	elif "author" in parent.usr:
-		result = latex.Group(end="\\\\\n")
-		process_usr(tag, result, parent)
-		result << tolatex(tag.content, result)
-		return result
-	elif "references" in cls:
-		result = latex.Env("thebibliography", [len(tag.content)])
-		process_usr(tag, result, parent)
-		result << tolatex(tag.content, result)
-		return result
-	elif "abstract" in cls:
-		result = latex.Group()
-		process_usr(tag, result, parent)
-		result.usr["abstract"] = True
-		result << tolatex(tag.content, result)
-		return result
-	elif "bio" in cls:
-		content = []
-		img = None
-		name = None
-		for c in tag.content:
-			if isinstance(c, html.STag) and c.name == "img" and not img:
-				img = c
-			elif isinstance(c, html.Tag) and c.name == "b":
-				name = c.content[0]
-			else:
-				content.append(c)
-		
-		result = latex.Env("IEEEbiography")
-		process_usr(tag, result, parent)
-		result.args = [(latex.Group([tolatex(img, result)], "", "{", "}"),), tolatex(name, result)]
-		result << tolatex(content, result)
-		return result
-	else:
-		return default2latex(tag, parent)
+
+	return default2latex(tag, parent)
 
 def header2latex(tag, parent):
 	result = latex.Group([], "\n")
@@ -188,29 +144,26 @@ def header2latex(tag, parent):
 	return result
 
 def hN2latex(tag, parent):
-	for i in range(1, 7):
-		if tag.name == "h" + str(i):
-			if "header" in parent.usr:
-				result = latex.Cmd("title")
-				process_usr(tag, result, parent, True)
-				result.args = [latex.Group()]
-				process_usr(tag, result.args[0], result)
-				result.args[0] << tolatex(tag.content, result.args[0])
-				return result
-			elif tag.content[0] == "Appendix":
-				result = latex.Cmd("appendix")
-				return result
-			elif tag.content[0] != "References":
-				result = latex.Section("", i-1)
-				process_usr(tag, result, parent)
-				result.args = [latex.Group()]
-				process_usr(tag, result.args[0], result)
-				result.args[0] << tolatex(tag.content, result.args[0])
-				return result
-	return None
+	index = int(tag.name[1:])
+	result = latex.Group()
+
+	section = latex.Section("", index-1)
+	process_usr(tag, section, parent)
+	if 'pass' in section.usr:
+		section.usr['pass'].append('a')
+	else:
+		section.usr['pass'] = ['a']
+	section.args = [latex.Group()]
+	process_usr(tag, section.args[0], section)
+	section.args[0] << tolatex([tag.content[0]], section.args[0])
+
+	result << section
+	if isinstance(tag.content[0], html.Tag) and tag.content[0].name == "a" and "name" in tag.content[0].attrs:
+		result << latex.Cmd("label", [tag.content[0].attrs["name"]])
+	return result
 
 def p2latex(tag, parent):
-	if "abstract" in parent.usr:
+	if "abstract" in parent.usr and len(tag.content) > 0 and isinstance(tag.content[0], html.Tag) and len(tag.content[0].content) > 0:
 		if tag.content[0].content[0] == "Abstract":
 			result = latex.Env("abstract")
 			process_usr(tag, result, parent)
@@ -231,6 +184,7 @@ def pre2latex(tag, parent):
 	result = latex.Group()
 	process_usr(tag, result, parent)
 	result << tolatex(tag.content, result)
+	result << "\n\n"
 	return result
 
 def code2latex(tag, parent):
@@ -264,28 +218,34 @@ def a2latex(tag, parent):
 	if "href" in tag.attrs:
 		href = tag.attrs["href"]
 		if len(href) > 0 and href[0] == "#":
-			if href[1:] in latex_citations:
-				result = latex.Cmd("cite", [href[1:]], inline=True)
+			if "#" in href[1:]:
+				result = latex.Cmd("cite", [], inline=True)
+				process_usr(tag, result, parent, True)
+				rng = href[1:].split('-#')
+				if rng[0] in latex_citations and rng[1] in latex_citations:
+					result.args = [','.join(latex_citations[latex_citations.index(rng[0]):latex_citations.index(rng[1])+1])]
+			elif href[1:] in latex_citations:
+				result = latex.Cmd("cite", [escape_ref(href[1:])], inline=True)
 				process_usr(tag, result, parent, True)
 			elif href[1:] in latex_figures:
-				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
 				process_usr(tag, result, parent, True)
 				result.args.append("Fig. " + str(latex_figures.index(href[1:])+1))
 			elif tag.content:
-				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
 				process_usr(tag, result, parent, True)
 				result.args.append(latex.Group(tolatex(tag.content, parent)))
 			elif href[1:] not in latex_unresolved:
-				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
 				process_usr(tag, result, parent, True)
 				latex_unresolved[href[1:]] = [result]
 			else:
-				result = latex.Cmd("hyperref", [(href[1:],)], inline=True)
+				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
 				process_usr(tag, result, parent, True)
 				latex_unresolved[href[1:]].append(result)
 			return result
 		else:
-			result = latex.Cmd("href", [href], inline=True)
+			result = latex.Cmd("href", [escape_ref(href)], inline=True)
 			process_usr(tag, result, parent, True)
 			result.args.append(latex.Group(tolatex(tag.content, parent)))
 			return result
@@ -366,15 +326,26 @@ def center2latex(tag, parent):
 def table2latex(tag, parent):
 	if "id" in tag.attrs:
 		latex_tables.append(tag.attrs["id"])
-	result = latex.Env("table", args=[("ht",)])
+
+	cnt = []
+	cap = None
+	for elem in tag.content:
+		if isinstance(elem, html.Tag) and elem.name == "caption":
+			cap = elem
+		else:
+			cnt.append(elem)
+
+	result = latex.Env("table", args=[("ht!",)])
 	process_usr(tag, result, parent)
 	table = latex.Env("tabular")
 	tr = tag["tr"]
 	table.args = [" | ".join(["c" for _ in range(0, len(tr[0].content))])]
 	process_usr(tag, table, result)
-	table << tolatex(tag.content, table)
-	result << latex.Cmd("centering")
+	table << tolatex(cnt, table)
+	result << latex.Cmd("centering")	
 	result << table
+	if cap is not None:
+		result << tolatex(cap, result)
 	return result
 
 def thead2latex(tag, parent):
@@ -411,7 +382,7 @@ def th2latex(tag, parent):
 	return result
 
 def figure2latex(tag, parent):
-	figure = latex.Env("figure", args=[("ht",)])
+	figure = latex.Env("figure", args=[("ht!",)])
 	process_usr(tag, figure, parent)
 	figure << latex.Cmd("centering")
 	figure << tolatex(tag.content, figure)
@@ -429,15 +400,28 @@ def figure2latex(tag, parent):
 		latex_figures.append('')
 	return result
 
-def figcaption2latex(tag, parent):
+def caption2latex(tag, parent):
 	result = latex.Cmd("caption")
 	process_usr(tag, result, parent, True)
 	result.args = [latex.Group(tolatex(tag.content, result))]
 	return result
 
+def abbr2latex(tag, parent):
+	result = latex.Group()
+	if "title" in tag.attrs and tag.attrs["title"]:
+		nom = latex.Cmd("nomenclature")
+		process_usr(tag, nom, parent, True)
+		nom.args = [latex.Group(tolatex(tag.content, nom)), remove_linebreaks(tag.attrs["title"])]
+		result << nom
+	result << tolatex(tag.content, parent)
+	return result
+	
+
 def img2latex(tag, parent):
 	if "src" in tag.attrs:
 		src = tag.attrs["src"]
+		path = os.path.dirname(src)
+
 		
 		outsrc = os.path.join(latex_outpath, src)
 		if not os.path.exists(os.path.dirname(outsrc)):
@@ -450,19 +434,24 @@ def img2latex(tag, parent):
 		if ".svg" in src:
 			width = None
 			if "style" in tag.attrs and tag.attrs["style"]:
-				width = tag.attrs["style"].get("max-width")
-				if "min" in width:
-					width = width[4:-1].split(',')
-					width = width[0] if '%' in width[0] else width[1]
+				width = tag.attrs["style"].get("width")
+				if not width:
+					width = tag.attrs["style"].get("max-width")
 				if "%" in width:
 					width = float(width[0:-1])/100.0
 				else:
 					width = None
 
 			outsrc = outsrc.replace(".svg", ".pdf")
-			os.system("inkscape -D -z --file=\"" + src + "\" --export-pdf=\"" + outsrc + "\" --export-latex")
+			intime = os.path.getmtime(src)
+			outtime = os.path.getmtime(outsrc)
+
+			if intime > outtime:
+				print("inkscape -D -z --file=\"" + src + "\" --export-pdf=\"" + outsrc + "\" --export-latex")
+				os.system("inkscape -D -z --file=\"" + src + "\" --export-pdf=\"" + outsrc + "\" --export-latex")
 			src = src.replace(".svg", ".pdf_tex")
 			result = latex.Group()
+			result << latex.Cmd("graphicspath", [path+'/'], d_open='{{', d_close='}}')
 			process_usr(tag, result, parent, True)
 			if width:
 				page = latex.Env("minipage", args=[latex.Group([str(width), latex.Cmd("columnwidth", inline=True)])], inline=True)
@@ -489,7 +478,7 @@ def img2latex(tag, parent):
 		return default2latex(tag, parent)
 
 def br2latex(tag, parent):
-	return latex.Cmd("\\\\")
+	return latex.Cmd("newline")
 
 def mark2latex(tag, parent):
 	result = latex.Cmd("hl", inline=True)
@@ -537,11 +526,13 @@ handlers = {
 	'td': td2latex,
 	'th': th2latex,
 	'figure': figure2latex,
-	'figcaption': figcaption2latex,
+	'figcaption': caption2latex,
+	'caption': caption2latex,
 	'img': img2latex,
 	'br': br2latex,
 	'mark': mark2latex,
 	'i': i2latex,
+	'abbr': abbr2latex,
 }
 
 def tolatex(tag, parent):
@@ -553,21 +544,34 @@ def tolatex(tag, parent):
 				result.append(item)
 		return result
 	if isinstance(tag, html.Tag):
-		if "class" not in tag.attrs or "web-only" not in tag.attrs["class"]:
-			if tag.name in handlers:
-				return handlers[tag.name](tag, parent)
-			else:
-				return default2latex(tag, parent)
-		else:
+		if "class" in tag.attrs and "web-only" in tag.attrs["class"]:
 			return ""
-	elif isinstance(tag, html.STag):
-		if "class" not in tag.attrs or "web-only" not in tag.attrs["class"]:
-			if tag.name in handlers:
-				return handlers[tag.name](tag, parent)
-			else:
-				print(tag)
-				return ""
+		elif parent and parent.usr and 'skip' in parent.usr and tag.name in parent.usr['skip']:
+			return ""
+		elif parent and parent.usr and 'pass' in parent.usr and tag.name in parent.usr['pass']:
+			result = latex.Group()
+			process_usr(tag, result, parent)
+			result << tolatex(tag.content, result)
+			return result
+		elif latex_module is not None and latex_module.has(tag):
+			return latex_module.set(tag, parent)
+		elif tag.name in handlers:
+			return handlers[tag.name](tag, parent)
 		else:
+			return default2latex(tag, parent)
+	elif isinstance(tag, html.STag):
+		if "class" in tag.attrs and "web-only" in tag.attrs["class"]:
+			return ""
+		elif parent and parent.usr and 'skip' in parent.usr and tag.name in parent.usr['skip']:
+			return ""
+		elif parent and parent.usr and 'pass' in parent.usr and tag.name in parent.usr['pass']:
+			return ""
+		elif latex_module is not None and latex_module.has(tag):
+			return latex_module.set(tag, parent)
+		elif tag.name in handlers:
+			return handlers[tag.name](tag, parent)
+		else:
+			print(tag)
 			return ""
 	else:
 		return escape(tag, "figure" not in parent.usr)
@@ -597,8 +601,9 @@ def convert_file(path):
 		article = parser.syntax["article"]
 		if article:
 			print("\n".join([
-				"\\documentclass[journal]{IEEEtran}",
+				latex_module.setDocument() if latex_module is not None else "\\documentclass[12pt,a4paper]{report}",
 				"\\nonstopmode",
+				"\\usepackage[utf8]{inputenc}",
 				"\\usepackage[pdftex]{graphicx}",
 				"\\usepackage{amsmath}",
 				"\\usepackage{dirtytalk}",
@@ -607,6 +612,8 @@ def convert_file(path):
 				"\\usepackage{stix}",
 				#"\\usepackage{xcolor}",
 				"\\usepackage{color,soul}",
+				"\\usepackage[nocfg]{nomencl}",
+				"\\usepackage{cite}",
 				"\\soulregister\\cite7",
 				"\\soulregister\\ref7",
 				"\\soulregister\\pageref7",
@@ -614,11 +621,19 @@ def convert_file(path):
 				"\\soulregister{\\lstinline}{1}",
 				"\\soulregister{\\bibitem}{1}",
 				"\\soulregister{\\say}{1}",
+				"\\definecolor{code_bg}{RGB}{245,242,240}",
 				"\\hypersetup{",
 				"		colorlinks=true,",
 				"		linkcolor=blue,",
 				"		filecolor=blue,",
 				"		urlcolor=blue,",
+				"}",
+				"\\lstset{",
+				"backgroundcolor=\color{code_bg},",
+				"xleftmargin=3pt,",
+				"xtopmargin=3pt,",
+				"xrightmargin=3pt,",
+				"xbottommargin=3pt",
 				"}",
 				"\\urlstyle{same}",
 				"\input{chp}",
@@ -639,6 +654,9 @@ for arg in sys.argv[1:]:
 	elif flag:
 		if flag == "-o" or flag == "--output":
 			latex_outpath = arg
+		if flag == "-f" or flag == "--format":
+			latex_module = importlib.import_module(arg)
+			latex_module.load(tolatex, process_usr)
 		flag = None
 	elif "ref" in arg:
 		paths.insert(0, arg)

@@ -45,7 +45,7 @@ class Env:
 		if self.inline:
 			return u"".join(self.emit())
 		else:
-			return u"\n".join(self.emit()) + u"\n"
+			return u"\n".join(self.emit())
 
 	def __lshift__(self, other):
 		if isinstance(other, (list, tuple)):
