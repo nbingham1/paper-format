@@ -59,7 +59,7 @@ def convert_code(content, lang, caption=False):
 			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
 		result = re.sub(r'\{\$', r'{', result, flags=re.MULTILINE)
 		result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
-	else:
+	elif lang in ["chp"]:
 		if not caption:
 			result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
 			result = re.sub(r'\\ring', r'$\\circ$', result, flags=re.MULTILINE)
@@ -89,6 +89,17 @@ def convert_code(content, lang, caption=False):
 		#result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
 	return result
 
+def get_lang(tag, parent):
+	lang = ""
+	if "class" in tag.attrs:
+		cls = tag.attrs["class"].split()
+		for c in cls:
+			if c.startswith("language-"):
+				lang = c[9:]
+	if not lang and parent and "lang" in parent.usr:
+		lang = parent.usr["lang"]
+	return lang
+
 def process_usr(tag, result, parent, is_arg=False):
 	if parent:
 		result.usr = parent.usr.copy()
@@ -101,14 +112,10 @@ def process_usr(tag, result, parent, is_arg=False):
 
 	if is_arg:
 		result.usr["arg"] = True
-		
-	if "class" in tag.attrs:
-		cls = tag.attrs["class"].split()
-		for c in cls:
-			if c[0:9] == "language-":
-				result.usr["lang"] = c[9:]
-			elif c == "author":
-				result.usr["author"] = True
+	
+	lang = get_lang(tag, parent)
+	if lang:
+		result.usr["lang"] = lang
 
 def default2latex(tag, parent):
 	if tag.name not in ["section", "subsection", "subsubsection", "div", "document", "html", "body"]:
@@ -188,10 +195,7 @@ def pre2latex(tag, parent):
 	return result
 
 def code2latex(tag, parent):
-	if "lang" in parent.usr:
-		lang = parent.usr["lang"]
-	else:
-		lang = ""
+	lang = get_lang(tag, parent)
 
 	if "pre" in parent.usr:
 		page = latex.Env("minipage", args=[latex.Group(["0.95", latex.Cmd("linewidth", inline=True)])], inline=False)
@@ -296,6 +300,26 @@ def ol2latex(tag, parent):
 	result << tolatex(tag.content, result)
 	return result
 
+def dl2latex(tag, parent):
+	result = latex.Env("description")
+	process_usr(tag, result, parent)
+	result << tolatex(tag.content, result)
+	return result
+
+def dt2latex(tag, parent):
+	result = latex.Group()
+	process_usr(tag, result, parent)
+	result << latex.Cmd("item", [(latex.Group(tolatex(tag.content, result)),)], inline=True)
+	result << latex.Cmd("hfill", inline=True)
+	result << latex.Cmd("\\", inline=True)
+	return result
+
+def dd2latex(tag, parent):
+	result = latex.Group()
+	process_usr(tag, result, parent)
+	result << tolatex(tag.content, result)
+	return result
+
 def li2latex(tag, parent):
 	result = latex.Group()
 	process_usr(tag, result, parent)
@@ -338,8 +362,15 @@ def table2latex(tag, parent):
 	result = latex.Env("table", args=[("ht!",)])
 	process_usr(tag, result, parent)
 	table = latex.Env("tabular")
-	tr = tag["tr"]
-	table.args = [" | ".join(["c" for _ in range(0, len(tr[0].content))])]
+	cols = 0
+	for td in tag["tr"][0].content:
+		if isinstance(td, html.Tag):
+			if "colspan" in td.attrs:
+				cols += int(td.attrs["colspan"])
+			else:
+				cols += 1
+
+	table.args = [" | ".join(["c" for _ in range(0, cols)])]
 	process_usr(tag, table, result)
 	table << tolatex(cnt, table)
 	result << latex.Cmd("centering")	
@@ -366,20 +397,23 @@ def tbody2latex(tag, parent):
 def tr2latex(tag, parent):
 	result = latex.Group([], " & ", "", " \\\\\n")
 	process_usr(tag, result, parent)
-	result << tolatex(tag.content, result)
+	result << tolatex([elem for elem in tag.content if isinstance(elem, html.Tag)], result)
 	return result
 
 def td2latex(tag, parent):
-	result = latex.Group()
-	process_usr(tag, result, parent)
-	result << tolatex(tag.content, result)
-	return result
+	result = None
+	if "colspan" in tag.attrs:
+		result = latex.Cmd("multicolumn", [int(tag.attrs["colspan"]), "c"], inline=True)
 
-def th2latex(tag, parent):
-	result = latex.Group()
-	process_usr(tag, result, parent)
-	result << tolatex(tag.content, result)
-	return result
+	cell = latex.Cmd("makecell", inline=True)
+	process_usr(tag, cell, parent)
+	cell.args = [latex.Group(tolatex(tag.content, cell))]
+
+	if result is not None:
+		result.args.append(cell)
+		return result
+	else:
+		return cell
 
 def figure2latex(tag, parent):
 	figure = latex.Env("figure", args=[("ht!",)])
@@ -478,7 +512,8 @@ def img2latex(tag, parent):
 		return default2latex(tag, parent)
 
 def br2latex(tag, parent):
-	return latex.Cmd("newline")
+	return " \\\\ "
+	#latex.Cmd("\\", inline=True)
 
 def mark2latex(tag, parent):
 	result = latex.Cmd("hl", inline=True)
@@ -517,14 +552,17 @@ handlers = {
 	'em': em2latex,
 	'ul': ul2latex,
 	'ol': ol2latex,
+	'dl': dl2latex,
 	'li': li2latex,
+	'dt': dt2latex,
+	'dd': dd2latex,
 	'center': center2latex,
 	'table': table2latex,
 	'thead': thead2latex,
 	'tbody': tbody2latex,
 	'tr': tr2latex,
 	'td': td2latex,
-	'th': th2latex,
+	'th': td2latex,
 	'figure': figure2latex,
 	'figcaption': caption2latex,
 	'caption': caption2latex,
@@ -614,6 +652,8 @@ def convert_file(path):
 				"\\usepackage{color,soul}",
 				"\\usepackage[nocfg]{nomencl}",
 				"\\usepackage{cite}",
+				"\\usepackage{makecell}",
+				"\\usepackage{multirow}",
 				"\\soulregister\\cite7",
 				"\\soulregister\\ref7",
 				"\\soulregister\\pageref7",
@@ -629,11 +669,13 @@ def convert_file(path):
 				"		urlcolor=blue,",
 				"}",
 				"\\lstset{",
-				"backgroundcolor=\color{code_bg},",
-				"xleftmargin=3pt,",
-				"xtopmargin=3pt,",
-				"xrightmargin=3pt,",
-				"xbottommargin=3pt",
+				"    backgroundcolor=\color{code_bg},",
+				"    xleftmargin=2mm,",
+				"    xtopmargin=2mm,",
+				"    xrightmargin=2mm,",
+				"    xbottommargin=2mm,",
+				"    tabsize=2,",
+				"    keepspaces=true",
 				"}",
 				"\\urlstyle{same}",
 				"\input{chp}",
