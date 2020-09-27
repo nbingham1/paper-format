@@ -38,55 +38,90 @@ def escape_ref(content):
 def remove_linebreaks(content):
 	return str(content).replace(u'\n', u' ').replace(u'\r', u'')
 
+def expand(s, grps):
+	for i, grp in enumerate(grps):
+		s = s.replace('\\' + str(i+1), grp)
+	s = s.replace('\\\\', '\\')
+	return s
+
+def convert(matches, src):
+	result = ""
+	i = 0
+	while i < len(src):
+		found = False
+		for m in matches:
+			g = re.match(m[0], src[i:], flags=re.MULTILINE)
+			if g:
+				grps = list(g.groups())
+				for j in range(0, len(grps)):
+					grps[j] = convert(matches, grps[j])
+				app = expand(m[1], grps)
+				#app = g.expand(m[1])
+				if len(result) > 0 and result[-1] == '$' and app[0] == '$':
+					result = result[0:-1] + app[1:]
+				else:
+					result += app
+				i += g.end()
+				found = True
+				break
+
+		if not found:
+			result += src[i]
+			i += 1
+	return result
+
 def convert_code(content, lang, caption=False):
-	result = "".join([str(c) for c in content]).strip()
+	src = "".join([str(c) for c in content]).strip()
 	if lang in ["prs"]:
-		if not caption:
-			result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
-			result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
-			result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
-			result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
-			result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
-			result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
-			result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
-			result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
-			result = re.sub(r'\+(\s*(?:\n|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
-			result = re.sub(r'-(\s*(?:\n|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
-			result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
-			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z0-9_]*)', r'\1$_{\\text{\2}}$', result, flags=re.MULTILINE)
-			#result = re.sub(r'_([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)
-		else:
-			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
-		result = re.sub(r'\{\$', r'{', result, flags=re.MULTILINE)
-		result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
+		matches = [
+			(r'\.{([^}]*)}', r'$_{\\text{\1}}$'),
+			(r'->', r'$\\rightarrow$'),
+			(r'~', r'$\\neg$'),
+			(r'\&', r'$\\wedge$'),
+			(r'\|', r'$\\vee$'),
+			(r'<=', r'$\\leq$'),
+			(r'>=', r'$\\geq$'),
+			(r'!=', r'$\\neq$'),
+			(r'==', r'='),
+			(r'\.\.\.', r'$\\cdots$'),
+			(r'\+(\s*(?:[\/\n]|$))', r'$\\uparrow$\1'),
+			(r'-(\s*(?:[\/\n]|$))', r'$\\downarrow$\1'),
+			(r'\.([a-zA-Z0-9_]+)', r'$_{\\text{\1}}$'),
+		]
+		result = convert(matches, src)
 	elif lang in ["chp"]:
-		if not caption:
-			result = re.sub(r'->', r'$\\rightarrow$', result, flags=re.MULTILINE)
-			result = re.sub(r'\\ring', r'$\\circ$', result, flags=re.MULTILINE)
-			result = re.sub(r'\\par', r'$\\parallel$', result, flags=re.MULTILINE)
-			result = re.sub(r'\|\|', r'$\\parallel$', result, flags=re.MULTILINE)
-			result = re.sub(r'\*\[', r'$*[$', result, flags=re.MULTILINE)
-			result = re.sub(r'~', r'$\\neg$', result, flags=re.MULTILINE)
-			result = re.sub(r'\&', r'$\\wedge$', result, flags=re.MULTILINE)
-			result = re.sub(r'\|', r'$\\vee$', result, flags=re.MULTILINE)
-			result = re.sub(r'<=', r'$\\leq$', result, flags=re.MULTILINE)
-			result = re.sub(r'>=', r'$\\geq$', result, flags=re.MULTILINE)
-			result = re.sub(r'!=', r'$\\neq$', result, flags=re.MULTILINE)
-			result = re.sub(r'==', r'$=$', result, flags=re.MULTILINE)
-			result = re.sub(r'\+(\s*(?:[;,:\]\)\$\n]|$))', r'$\\uparrow$\1', result, flags=re.MULTILINE)
-			result = re.sub(r'-(\s*(?:[;,:\]\)\$\n]|$))', r'$\\downarrow$\1', result, flags=re.MULTILINE)
-			result = re.sub(r'\[\]', r'$\\vrectangle$', result, flags=re.MULTILINE)
-			result = re.sub(r':([^=])', r'$|$\1', result, flags=re.MULTILINE)
-			result = re.sub(r'\.\.\.', r'$\\cdots$', result, flags=re.MULTILINE)
-			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z0-9_]*)', r'\1$_{\\text{\2}}$', result, flags=re.MULTILINE)
-			result = re.sub(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$', result, flags=re.MULTILINE)	
-		else:
-			result = re.sub(r'\\par', r'||', result, flags=re.MULTILINE)
-			result = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)', r'\1\2', result, flags=re.MULTILINE)
-		result = re.sub(r'([^\*])\[', r'\1$[$', result, flags=re.MULTILINE)
-		result = re.sub(r'\]', r'$]$', result, flags=re.MULTILINE)
-		#result = re.sub(r'\{\$', r'{', result, flags=re.MULTILINE)
-		#result = re.sub(r'\$\}', r'}', result, flags=re.MULTILINE)
+		matches = [
+			(r'\.{([^}]*)}', r'$_{\\text{\1}}$'),
+			(r'->', r'$\\rightarrow$'),
+			(r'\|\|', r'$\\parallel$'),
+			(r'\\par', r'$\\parallel$'),
+			(r'\*\[', r'$*$['),
+			(r'\\\[', r'['),
+			(r'\[\]', r'$\\vrectangle$'),
+			(r'\\\*', r'$\\bullet$'),
+			(r'\\ring', r'$\\circ$'),
+			(r'~', r'$\\neg$'),
+			(r'\&', r'$\\wedge$'),
+			(r'\|', r'$\\vee$'),
+			(r'<=', r'$\\leq$'),
+			(r'>=', r'$\\geq$'),
+			(r'!=', r'$\\neq$'),
+			(r'==', r'='),
+			(r'\\:', r':'),
+			(r':=', r':='),
+			(r':', r'|'),
+			(r'\.\.\.', r'$\\cdots$'),
+			(r'\+(\s*(?:[\/;,:\]\)=\n!\?*]|$))', r'$\\uparrow$\1'),
+			(r'-(\s*(?:[\/;,:\]\)=\n!\?*]|$))', r'$\\downarrow$\1'),
+			(r'\.([a-zA-Z0-9_]+)', r'$_{\\text{\1}}$'),
+			(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$'),
+		]
+		result = convert(matches, src)
+	else:
+		if not lang:
+			print(src)
+			print()
+		result = src
 	return result
 
 def get_lang(tag, parent):
@@ -203,19 +238,26 @@ def code2latex(tag, parent):
 		result = latex.Env("lstlisting", args=[("mathescape",)])
 		process_usr(tag, result, parent)
 		result << convert_code(tag.content, lang, "arg" in parent.usr)
+		page << latex.Cmd("singlespacing")
 		page << result
 		pre = latex.Group()
-		pre << latex.Cmd("noindent")
-		pre << page
+		pre << latex.Cmd("newbox", ["\\mybox"])
+		box = latex.Env("lrbox", ["\\mybox"])
+		box << latex.Cmd("noindent")
+		box << page
+		pre << box
+		pre << latex.Cmd("colorbox", ["code_bg", latex.Cmd("usebox", [latex.Cmd("mybox")])])
 		return pre
 	else:
+		#color = latex.Cmd("colorbox", ["code_bg"], inline=True)
 		result = latex.Cmd("protect\\lstinline", args=[("mathescape, columns=fixed",)], inline=True, d_open=u'!', d_close=u'!')
 		process_usr(tag, result, parent)
 		group = latex.Group()
 		process_usr(tag, group, result)
 		group << convert_code(tag.content, lang, "arg" in parent.usr).replace('\n', ' ')
 		result.args.append(group)
-		return result
+		#color.args.append(result)
+		return result #color
 
 citation = re.compile("^#[a-z]*[0-9]{4}")
 def a2latex(tag, parent):
@@ -373,6 +415,7 @@ def table2latex(tag, parent):
 	table.args = [" | ".join(["c" for _ in range(0, cols)])]
 	process_usr(tag, table, result)
 	table << tolatex(cnt, table)
+	result << latex.Cmd("small")	
 	result << latex.Cmd("centering")	
 	result << table
 	if cap is not None:
@@ -622,6 +665,7 @@ def convert_file(path):
 	
 	#latex_path.append(os.path.dirname(path))
 
+	print(path)
 	eparser = etree.HTMLParser(target = Parser())
 	with open(path, 'r') as fptr:
 		data = fptr.read()
@@ -650,10 +694,11 @@ def convert_file(path):
 				"\\usepackage{stix}",
 				#"\\usepackage{xcolor}",
 				"\\usepackage{color,soul}",
-				"\\usepackage[nocfg]{nomencl}",
+				"\\usepackage[nocfg,norefpage,noprefix]{nomencl}",
 				"\\usepackage{cite}",
 				"\\usepackage{makecell}",
 				"\\usepackage{multirow}",
+				"\\usepackage{setspace}",
 				"\\soulregister\\cite7",
 				"\\soulregister\\ref7",
 				"\\soulregister\\pageref7",
@@ -662,6 +707,7 @@ def convert_file(path):
 				"\\soulregister{\\bibitem}{1}",
 				"\\soulregister{\\say}{1}",
 				"\\definecolor{code_bg}{RGB}{245,242,240}",
+				"\\setlength\\tabcolsep{1.5pt}",
 				"\\hypersetup{",
 				"		colorlinks=true,",
 				"		linkcolor=blue,",
@@ -669,13 +715,10 @@ def convert_file(path):
 				"		urlcolor=blue,",
 				"}",
 				"\\lstset{",
-				"    backgroundcolor=\color{code_bg},",
 				"    xleftmargin=2mm,",
-				"    xtopmargin=2mm,",
 				"    xrightmargin=2mm,",
-				"    xbottommargin=2mm,",
 				"    tabsize=2,",
-				"    keepspaces=true",
+				"    keepspaces=true,",
 				"}",
 				"\\urlstyle{same}",
 				"\input{chp}",

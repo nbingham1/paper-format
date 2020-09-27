@@ -86,7 +86,7 @@ def _listOfAbbreviations(tag, parent):
 	process_usr(tag, result, parent)
 	result << latex.Cmd("renewcommand{\\nomname}{List of Abbreviations}")
 	result << latex.Cmd("makenomenclature")
-	result << latex.Cmd("printnomenclature")
+	result << latex.Cmd("printnomenclature", [("1in",)])
 	return result
 
 def _preface(tag, parent):
