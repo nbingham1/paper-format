@@ -84,8 +84,8 @@ def convert_code(content, lang, caption=False):
 			(r'!=', r'$\\neq$'),
 			(r'==', r'='),
 			(r'\.\.\.', r'$\\cdots$'),
-			(r'\+(\s*(?:[\/\n]|$))', r'$\\uparrow$\1'),
-			(r'-(\s*(?:[\/\n]|$))', r'$\\downarrow$\1'),
+			(r'\+(?=\s*[\/\n]|\s*$)', r'$\\uparrow$'),
+			(r'-(?=\s*[\/\n]|\s*$)', r'$\\downarrow$'),
 			(r'\.([a-zA-Z0-9_]+)', r'$_{\\text{\1}}$'),
 		]
 		result = convert(matches, src)
@@ -111,8 +111,8 @@ def convert_code(content, lang, caption=False):
 			(r':=', r':='),
 			(r':', r'|'),
 			(r'\.\.\.', r'$\\cdots$'),
-			(r'\+(\s*(?:[\/;,:\]\)=\n!\?*]|$))', r'$\\uparrow$\1'),
-			(r'-(\s*(?:[\/;,:\]\)=\n!\?*]|$))', r'$\\downarrow$\1'),
+			(r'\+(?=\s*[\/;,:\]\)=\n!\?*\\]|\s*$)', r'$\\uparrow$'),
+			(r'-(?=\s*[\/;,:\]\)=\n!\?*\\]|\s*$)', r'$\\downarrow$'),
 			(r'\.([a-zA-Z0-9_]+)', r'$_{\\text{\1}}$'),
 			(r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', r'$\\overline{\\mbox{\1}}$'),
 		]
