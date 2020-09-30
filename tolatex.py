@@ -13,6 +13,7 @@ import importlib
 latex_figures = []
 latex_citations = []
 latex_tables = []
+latex_abbr = {}
 
 latex_files = []
 latex_path = []
@@ -274,20 +275,28 @@ def a2latex(tag, parent):
 				result = latex.Cmd("cite", [escape_ref(href[1:])], inline=True)
 				process_usr(tag, result, parent, True)
 			elif href[1:] in latex_figures:
-				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
+				result = latex.Group()
 				process_usr(tag, result, parent, True)
-				result.args.append("Fig. " + str(latex_figures.index(href[1:])+1))
+				result << "Fig. "
+				result << latex.Cmd("ref", [escape_ref(href[1:])], inline=True)
+			elif href[1:] in latex_tables:
+				result = latex.Group()
+				process_usr(tag, result, parent, True)
+				result << "Table. "
+				result << latex.Cmd("ref", [escape_ref(href[1:])], inline=True)
 			elif tag.content:
 				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
 				process_usr(tag, result, parent, True)
 				result.args.append(latex.Group(tolatex(tag.content, parent)))
 			elif href[1:] not in latex_unresolved:
-				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
+				result = latex.Group()
 				process_usr(tag, result, parent, True)
+				result << latex.Cmd("ref", [escape_ref(href[1:])], inline=True)
 				latex_unresolved[href[1:]] = [result]
 			else:
-				result = latex.Cmd("hyperref", [(escape_ref(href[1:]),)], inline=True)
+				result = latex.Group()
 				process_usr(tag, result, parent, True)
+				result << latex.Cmd("ref", [escape_ref(href[1:])], inline=True)
 				latex_unresolved[href[1:]].append(result)
 			return result
 		else:
@@ -390,9 +399,6 @@ def center2latex(tag, parent):
 	return result
 
 def table2latex(tag, parent):
-	if "id" in tag.attrs:
-		latex_tables.append(tag.attrs["id"])
-
 	cnt = []
 	cap = None
 	for elem in tag.content:
@@ -416,10 +422,18 @@ def table2latex(tag, parent):
 	process_usr(tag, table, result)
 	table << tolatex(cnt, table)
 	result << latex.Cmd("small")	
-	result << latex.Cmd("centering")	
+	result << latex.Cmd("centering")
 	result << table
 	if cap is not None:
 		result << tolatex(cap, result)
+	if 'id' in tag.attrs:
+		result << latex.Cmd("label", args=[tag.attrs['id']], inline=True)
+		latex_tables.append(tag.attrs["id"])
+		if tag.attrs['id'] in latex_unresolved:
+			for elem in latex_unresolved[tag.attrs['id']]:
+				elem.content = ["Tbl. "] + elem.content
+			del latex_unresolved[tag.attrs['id']]
+
 	return result
 
 def thead2latex(tag, parent):
@@ -462,20 +476,19 @@ def figure2latex(tag, parent):
 	figure = latex.Env("figure", args=[("ht!",)])
 	process_usr(tag, figure, parent)
 	figure << latex.Cmd("centering")
+	figure << latex.Cmd("advance\\leftskip-1cm")
+	figure << latex.Cmd("advance\\rightskip-1cm")
 	figure << tolatex(tag.content, figure)
-	result = figure
 	if 'id' in tag.attrs:
-		result = latex.Group()
-		result << latex.Cmd("label", args=[tag.attrs['id']], inline=True)
-		result << figure
+		figure << latex.Cmd("label", args=[tag.attrs['id']], inline=True)
 		latex_figures.append(tag.attrs['id'])
 		if tag.attrs['id'] in latex_unresolved:
 			for elem in latex_unresolved[tag.attrs['id']]:
-				elem.args.append("Fig. " + str(len(latex_figures)))
+				elem.content = ["Fig. "] + elem.content
 			del latex_unresolved[tag.attrs['id']]
 	else:
 		latex_figures.append('')
-	return result
+	return figure
 
 def caption2latex(tag, parent):
 	result = latex.Cmd("caption")
@@ -485,15 +498,14 @@ def caption2latex(tag, parent):
 
 def abbr2latex(tag, parent):
 	result = latex.Group()
+	aid = ''.join(str(x) for x in tag.content)
 	if "title" in tag.attrs and tag.attrs["title"]:
-		nom = latex.Cmd("nomenclature")
-		process_usr(tag, nom, parent, True)
-		nom.args = [latex.Group(tolatex(tag.content, nom)), remove_linebreaks(tag.attrs["title"])]
-		result << nom
-	result << tolatex(tag.content, parent)
+		latex_abbr[aid] = remove_linebreaks(tag.attrs["title"])
+		result << latex.Cmd("gls", [aid.lower()])
+	else:
+		result << aid
 	return result
 	
-
 def img2latex(tag, parent):
 	if "src" in tag.attrs:
 		src = tag.attrs["src"]
@@ -574,6 +586,9 @@ def i2latex(tag, parent):
 	result.args[0] << tolatex(tag.content, result.args[0])
 	return result
 
+def ignore(tag, parent):
+	return ""
+
 handlers = {
 	'article': article2latex,
 	'div': div2latex,
@@ -614,6 +629,7 @@ handlers = {
 	'mark': mark2latex,
 	'i': i2latex,
 	'abbr': abbr2latex,
+	'style': ignore,
 }
 
 def tolatex(tag, parent):
@@ -693,12 +709,11 @@ def convert_file(path):
 				"\\usepackage{listings}",
 				"\\usepackage{stix}",
 				#"\\usepackage{xcolor}",
-				"\\usepackage{color,soul}",
-				"\\usepackage[nocfg,norefpage,noprefix]{nomencl}",
+				"\\usepackage{xcolor,soul}",
+				"\\usepackage[nonumberlist]{glossaries}",
 				"\\usepackage{cite}",
 				"\\usepackage{makecell}",
 				"\\usepackage{multirow}",
-				"\\usepackage{setspace}",
 				"\\soulregister\\cite7",
 				"\\soulregister\\ref7",
 				"\\soulregister\\pageref7",
@@ -707,6 +722,7 @@ def convert_file(path):
 				"\\soulregister{\\bibitem}{1}",
 				"\\soulregister{\\say}{1}",
 				"\\definecolor{code_bg}{RGB}{245,242,240}",
+				"\\definecolor{grey}{RGB}{50,50,50}",
 				"\\setlength\\tabcolsep{1.5pt}",
 				"\\hypersetup{",
 				"		colorlinks=true,",
@@ -721,7 +737,9 @@ def convert_file(path):
 				"    keepspaces=true,",
 				"}",
 				"\\urlstyle{same}",
-				"\input{chp}",
+				"\\input{chp}",
+				"\\makeglossaries",
+				"\\input{glos}"
 			]), file=fptr)
 
 			result = tolatex(article[0], None)
@@ -751,3 +769,9 @@ for arg in sys.argv[1:]:
 for path in paths:
 	convert_file(path)
 
+if latex_abbr:
+	with open(os.path.join(latex_outpath, "glos.tex"), 'w') as fptr:
+		result = latex.Group()
+		for abbr, desc in latex_abbr.items():
+			result << latex.Cmd("newglossaryentry", [abbr.lower(), "%\nname={" + abbr + "},%\ndescription={" + desc + "}%\n"])
+		print(result, file=fptr)

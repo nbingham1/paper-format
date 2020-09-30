@@ -15,7 +15,7 @@ body {
 	margin: 0 0 0 0;
 	padding: 0 0 0 0;
 	hyphens: none;
-	counter-reset: section_id figure_id table_id code_id;
+	counter-reset: section_id figure_id table_id code_id appendix_id;
 }
 
 #font-test {
@@ -36,9 +36,13 @@ a {
 }
 
 img {
+	box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 	display: inline-block;
 	max-width: 100%;
 	max-height: 100%;
+	vertical-align: top;
 }
 
 .print-only {
@@ -51,6 +55,13 @@ img {
 	position: absolute;
 }
 
+.code-block {
+	display: block;
+	page-break-inside: avoid;
+	break-inside: avoid;
+	text-align: center;
+}
+
 .toc-page {
 	float: right;
 }
@@ -58,6 +69,7 @@ img {
 	display: block;
 	width: 100%;
 	border-bottom: 1px solid #cccccc;
+	text-align: left;
 	/*background-image: radial-gradient(circle at center, #000 0.9px, rgba(255,255,255,0) 1.8px);
 	background-position: bottom;
 	background-size: 0.4rem 0.74rem;
@@ -71,6 +83,12 @@ img {
 	max-width: 80%;
 }
 
+#table-of-contents > ol > li > .toc-elem {
+	border-bottom: 1px solid #000000;
+	font-weight: bold;
+}
+
+
 code {
 	display: inline;
 	font-family: Courier, monospace;
@@ -82,13 +100,17 @@ code {
 }
 
 pre {
+	box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 	display: block;
 	break-inside: avoid;
 	page-break-inside: avoid;
 	font-size: 1.0rem;
-	max-width: calc(100% - 1.0rem);
+	max-width: 100%;
 	padding: 0.25rem 0.25rem 0.25rem 0.25rem;
 	counter-increment: code_id;
+	vertical-align: top;
 }
 
 section.language-prs pre {
@@ -98,10 +120,10 @@ section.language-prs pre {
 
 figure {
 	display: block;
+	float: top;
 	page-break-inside: avoid;
 	break-inside: avoid;
 	margin: 0.5rem 0 0.5rem 0;
-	width: 100%;
 	text-align: center;
 }
 
@@ -111,8 +133,8 @@ figure figcaption:first-of-type {
 
 figcaption {
 	caption-side: bottom;
-	text-align: middle;
-	line-height: 1.5;
+	text-align: left;
+	line-height: 1.0;
 	font: inherit;
 	font-size: 1.0rem;
 	font-weight: normal;
@@ -183,11 +205,11 @@ table caption:first-of-type {
 
 table caption {
 	caption-side: bottom;
-	text-align: center;
+	text-align: left;
 	font: inherit;
 	font-size: 1.0rem;
 	font-weight: normal;
-	line-height: 1.5;
+	line-height: 1.0;
 	margin: 0 0 0.4rem 0;
 }
 
@@ -252,8 +274,13 @@ section.cover p {
 	text-align: center;
 }
 
-section.counter-skip:not(.cover) { padding-top: 0; }
+section { counter-reset: subsection_id; }
+subsection { counter-reset: subsubsection_id; }
 section:not(.counter-skip) { counter-increment: section_id; }
+section.appendix:not(.counter-skip) { counter-increment: appendix_id; }
+subsection:not(.counter-skip) { counter-increment: subsection_id; }
+subsubsection:not(.counter-skip) { counter-increment: subsubsection_id; }
+
 section:not(.counter-skip) h1::before {
 	display: block;
 	margin-bottom: 1.0rem;
@@ -264,8 +291,38 @@ section:not(.counter-skip) h1::before {
 	content: "Chapter " counter(section_id, decimal); 
 }
 
-section.counter-skip h1::before {
+section.appendix:not(.counter-skip) h1::before {
+	display: block;
+	margin-bottom: 1.0rem;
+	text-transform: uppercase;
+	line-height: 1.9;
+	font-size: 1.2rem;
+	font-variant: normal;
+	content: "Appendix " counter(appendix_id, upper-alpha); 
+}
+
+.counter-skip:not(.cover) { padding-top: 0; }
+.counter-skip h1::before {
 	content: "" !important;
+}
+
+h2::before {
+	margin-right: 1rem;
+	content: counter(section_id) "." counter(subsection_id);
+}
+
+h3::before {
+	margin-right: 1rem;
+	content: counter(section_id) "." counter(subsection_id) "." counter(subsubsection_id);
+}
+
+.appendix h2::before {
+	content: counter(appendix_id, upper-alpha) "." counter(subsection_id);
+}
+
+.appendix h3::before {
+	margin-right: 1rem;
+	content: counter(appendix_id, upper-alpha) "." counter(subsection_id) "." counter(subsubsection_id);
 }
 
 h1 + h2,
@@ -291,27 +348,7 @@ q > q::after { content: '’'; }
 
 small { font-size: 0.8rem; }
 
-.footnote {
-	counter-increment: footnote;
-	float: prince-column-footnote;
-	margin-left: .333rem;
-	padding-left: .667rem; }
-	.footnote:footnote-call {
-	content: counter(footnote);
-	font-size: 0.66rem;
-	line-height: none;
-	vertical-align: super; }
-	.footnote:footnote-marker {
-	content: counter(footnote);
-	font-size: 0.66rem;
-	footnote-style-position: inside; }
-
 @page {
-	escape("@")footnotes {
-	border-top: 0.5px solid #000;
-	columns: 1;
-	margin-top: 1rem;
-	padding-top: 0.3rem; }
 	size: 8.5in 11in;
 	/*margin: 0in 0in 0in 0in;*/
 	margin: 1.0in 1.0in 1.0in 1.0in;
@@ -416,7 +453,7 @@ ol {
 }
 
 ol ol {
-	list-style: lower-alpha outside none;
+	list-style: decimal outside none;
 	font-size: 1.2rem;
 	margin: 0 0 0 0;
 }
@@ -424,6 +461,19 @@ ol ol {
 ol li.skip {
 	list-style-type:none;
 	counter-increment:none;
+}
+
+ol li.appendix {
+	list-style: upper-alpha outside none;
+}
+
+#references h2::before {
+	content: "R." counter(subsection_id);
+}
+
+#references h3::before {
+	margin-right: 1rem;
+	content: "R." counter(subsection_id) "." counter(subsubsection_id);
 }
 
 .title {
@@ -441,14 +491,6 @@ ol li.skip {
 .author {
 	text-align: center;
 }
-
-.footnote {
-	font-size: 0.8rem;
-	font-weight: normal;
-	margin-bottom: -.38in; }
-	.footnote:footnote-call, .footnote:footnote-marker {
-	content: none;
-	display: none; }
 
 .equation {
 	margin: 1.2rem 0 0.8rem;
@@ -472,15 +514,16 @@ cite {
 	font-size: 1rem;
 	text-align: justify;
 	break-inside: avoid;
+	width: 100%;
 	margin: 0 0 0.3rem 0;
 }
 
 .cite-txt {
 	display: table-cell;
 	text-indent: 0;
-	width: calc(100% - 3rem);
 	font-style: normal;
 	font-size: 1rem;
+	text-align: left;
 }
 
 .cite-ref {

@@ -84,14 +84,17 @@ def _listOfTables(tag, parent):
 def _listOfAbbreviations(tag, parent):
 	result = latex.Group()
 	process_usr(tag, result, parent)
-	result << latex.Cmd("renewcommand{\\nomname}{List of Abbreviations}")
-	result << latex.Cmd("makenomenclature")
-	result << latex.Cmd("printnomenclature", [("1in",)])
+	result << "{"
+	result << latex.Cmd("listspacing", ["abbr"])
+	result << latex.Cmd("printglossary", [("style=list,title=List Of Abbreviations",)])
+	result << "}"
 	return result
 
 def _preface(tag, parent):
 	result = latex.Group()
 	process_usr(tag, result, parent)
+	result << latex.Cmd("preface")
+	result.usr['skip'] = ['h1']
 	result << tolatex(tag.content, result)
 	result << latex.Cmd("normalspacing")
 	result << latex.Cmd("setcounter", ["page", 1])
@@ -100,10 +103,20 @@ def _preface(tag, parent):
 	result << latex.Cmd("addtolength", ["\\parskip", "0.5\\baselineskip"])
 	return result
 
-def _appendix(tag, parent):
-	result = latex.Env("appendix")
+def _conclusion(tag, parent):
+	result = latex.Group()
+	result << latex.Cmd("conclusion")
 	process_usr(tag, result, parent)
 	result.usr['skip'] = ['h1']
+	result << tolatex(tag.content, result)
+	return result
+
+def _appendix(tag, parent):
+	result = latex.Group()
+	if not hasattr(_appendix, 'first'):
+		result << latex.Cmd("appendix")
+		_appendix.first = True
+	process_usr(tag, result, parent)
 	result << tolatex(tag.content, result)
 	return result
 
@@ -126,11 +139,12 @@ idHandlers = {
 	'list-of-tables': _listOfTables,
 	'list-of-abbreviations': _listOfAbbreviations,
 	'preface': _preface,
-	'appendix': _appendix,
+	'conclusion': _conclusion,
 	'references': _references,
 }
 
 classHandlers = {
+	'appendix': _appendix,
 }
 
 tagHandlers = {

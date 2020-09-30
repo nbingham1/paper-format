@@ -45,7 +45,7 @@ class Env:
 		if self.inline:
 			return u"".join(self.emit())
 		else:
-			return u"\n".join(self.emit())
+			return u"\n".join(self.emit()) + u"\n"
 
 	def __lshift__(self, other):
 		if isinstance(other, (list, tuple)):
@@ -100,7 +100,7 @@ class Group:
 class Section(Cmd):
 	def __init__(self, title, level = 0, usr = None):
 		Cmd.__init__(self,
-			name = (u"sub"*level + u"section"),
+			name = ("chapter" if level == 0 else u"sub"*(level-1) + u"section"),
 			args = [title],
 			usr = usr)
 

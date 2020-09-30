@@ -206,8 +206,8 @@ textWidth = function(elem) {
 		} else {
 			text = elem.textContent ? elem.textContent : elem.innerText;
 		}
-		const cvs = textWidth.cvs || document.getElementById("mycanvas");
-		const myctx = cvs.getContext("2d");
+		var cvs = textWidth.cvs || document.getElementById("mycanvas");
+		var myctx = cvs.getContext("2d");
 		if (elem.tagName != null && elem.tagName.toLowerCase() == "cite") {
 			myctx.font = "10pt Times New Roman";
 		} else {
@@ -230,7 +230,7 @@ textWidth = function(elem) {
 
 tableWidth = function(elem) {
 	var rows = elem.getElementsByTagName("tr");
-	var widths = []
+	var widths = [];
 	for (var i = 0; i < rows.length; i++) {
 		for (var j = 0; j < rows[i].childNodes.length; j++) {
 			while (j >= widths.length) {
@@ -239,7 +239,10 @@ tableWidth = function(elem) {
 			widths[j] = Math.max(widths[j], textWidth(rows[i].childNodes[j]));
 		}
 	}
-	return widths.reduce((a, b) => a + b, 0);
+	var width = 0;
+	for (var i = 0; i < widths.length; i++)
+		width += widths[i];
+	return width;
 }
 
 textLines = function(elem, width) {
@@ -552,6 +555,7 @@ contentsOfSection = function(level, elem, ins, ppi) {
 	if (h1.length > 0) {
 		var ol = document.createElement("ol");
 		var value = 1;
+		var app = 1;
 		for (var i = 0; i < h1.length; i++) {
 			if (!h1[i].parentNode.classList.contains("page-skip")) {
 				var text = h1[i].childNodes;
@@ -572,6 +576,10 @@ contentsOfSection = function(level, elem, ins, ppi) {
 				var textNode = document.createTextNode(text.nodeValue);
 				if (h1[i].parentNode.classList.contains("counter-skip")) {
 					li.setAttribute("class", "skip");
+				} else if (h1[i].parentNode.classList.contains("appendix")) {
+					li.setAttribute("value", app);
+					li.classList.add("appendix");
+					app += 1;
 				} else {
 					li.setAttribute("value", value);
 					value += 1;
@@ -733,14 +741,14 @@ listOfAbbreviations = function() {
 				keys = Array.from(abbrs.keys());
 				keys.sort();
 				var ol = document.createElement("ul");
-				for (const key of keys) {
+				for (var i = 0; i < keys.length; i++) {
 					var li = document.createElement("li");
 					var cont = document.createElement("div");
 					cont.setAttribute("class", "toc-elem");
 					var chap = document.createElement("div");
 					var textNode;
 					if (text != null) {
-						textNode = document.createTextNode(key);
+						textNode = document.createTextNode(keys[i]);
 					} else {
 						textNode = document.createTextNode("Anonymous");
 					}
@@ -748,7 +756,7 @@ listOfAbbreviations = function() {
 					cont.appendChild(chap);
 					var pagenum = document.createElement("div");
 					pagenum.setAttribute("class", "toc-page");
-					pagenum.appendChild(document.createTextNode(abbrs.get(key)));
+					pagenum.appendChild(document.createTextNode(abbrs.get(keys[i])));
 					cont.appendChild(pagenum);
 					li.appendChild(cont); 
 					ol.appendChild(li);
