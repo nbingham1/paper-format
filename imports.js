@@ -1,4 +1,4 @@
-function promisify(f, ...args) {
+function waitFor(f, ...args) {
 	return new Promise(function(resolve, reject) {
 		f.call(..args);
 		resolve();

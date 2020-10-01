@@ -87,6 +87,13 @@ def cite2static(parent, idx, flags):
 			ref_id = parent[0].content[idx].attrs["id"]
 			ref_num = len(ref_map)+1
 			ref_map[ref_id] = ref_num
+			parent[0].content[idx].content
+			ref = html.Div(Class="cite-ref")
+			ref << ("[" + str(ref_num) + "]")
+			txt = html.Div(Class="cite-txt")
+			txt.content = parent[0].content[idx].content
+			parent[0].content[idx].content = [ref, txt]
+
 			if ref_id in unresolved:
 				lst = unresolved[ref_id]
 				del unresolved[ref_id]
@@ -202,7 +209,7 @@ def listOfAbbrev():
 			item = html.Li()
 			elem = html.Div(Class="toc-elem")
 			elem << (html.Div() << abbr)
-			elem << (html.Div(Class="toc-page") << title)
+			elem << (html.Div(Class="toc-def") << title)
 			item << elem
 			lst << item
 		loa_section[0] << lst
@@ -218,7 +225,7 @@ def listOfFigures():
 			item = html.Li()
 			elem = html.Div(Class="toc-elem")
 			elem << (html.Div() << (html.A(Class="xref", Href="#" + ref_id) << caption_string))
-			elem << html.Div(Class="toc-page")
+			elem << html.Div(Class="toc-page", Xref="#" + ref_id)
 			item << elem
 			lst << item
 		lof_section[0] << lst
@@ -234,7 +241,7 @@ def listOfTables():
 			item = html.Li()
 			elem = html.Div(Class="toc-elem")
 			elem << (html.Div() << (html.A(Class="xref", Href="#" + ref_id) << caption_string))
-			elem << html.Div(Class="toc-page")
+			elem << html.Div(Class="toc-page", Xref="#" + ref_id)
 			item << elem
 			lst << item
 		lot_section[0] << lst
@@ -275,7 +282,7 @@ def subTableOfContents(titles, idx, level, top):
 
 			elem = html.Div(Class="toc-elem")
 			elem << (html.Div() << (html.A(Class="xref", Href="#" + title_id) << title_string))
-			elem << html.Div(Class="toc-page")
+			elem << html.Div(Class="toc-page", Xref="#" + title_id)
 			item << elem
 			lst << item
 			idx[0] += 1

@@ -632,7 +632,7 @@ listOfAbbreviations = function() {
 				chap.appendChild(textNode);
 				cont.appendChild(chap);
 				var pagenum = document.createElement("div");
-				pagenum.setAttribute("class", "toc-page");
+				pagenum.setAttribute("class", "toc-def");
 				pagenum.appendChild(document.createTextNode(abbrs.get(keys[i])));
 				cont.appendChild(pagenum);
 				li.appendChild(cont); 

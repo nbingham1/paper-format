@@ -65,6 +65,9 @@ img {
 .toc-page {
 	float: right;
 }
+.toc-def {
+	float: right;
+}
 .toc-elem {
 	display: block;
 	width: 100%;
@@ -352,6 +355,10 @@ small { font-size: 0.8rem; }
 	size: 8.5in 11in;
 	/*margin: 0in 0in 0in 0in;*/
 	margin: 1.0in 1.0in 1.0in 1.0in;
+
+	@bottom {
+		content: counter(page);
+	}
 }
 
 @media print {
@@ -392,9 +399,9 @@ small { font-size: 0.8rem; }
 		counter-increment: page;
 	}*/
 
-	/*a.xref:after {
-		content: leader('.') target-counter(attr(href), page);
-	}*/
+	.toc-page {
+		content: target-counter(attr(xref), page);
+	}
 
 	.full-page-90 {
 		display: block;
