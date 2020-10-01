@@ -1,89 +1,3 @@
-// https://stackoverflow.com/questions/30008114/how-do-i-promisify-native-xhr
-function request(opts) {
-  return new Promise(function (resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.open(opts.method, opts.url, true);
-    xhr.onload = function () {
-      if (this.status >= 200 && this.status < 300) {
-        resolve({
-					obj: xhr.response,
-					text: xhr.responseText,
-					pass: opts.pass
-				});
-      } else {
-        reject({
-          status: this.status,
-          text: xhr.statusText,
-					pass: opts.pass
-        });
-      }
-    };
-    xhr.onerror = function () {
-      reject({
-        status: this.status,
-        text: xhr.statusText,
-				pass: opts.pass
-      });
-    };
-    if (opts.headers) {
-      Object.keys(opts.headers).forEach(function (key) {
-        xhr.setRequestHeader(key, opts.headers[key]);
-      });
-    }
-    var params = opts.params;
-    // We'll need to stringify if we've been given an object
-    // If we have a string, this is skipped.
-    if (params && typeof params === 'object') {
-      params = Object.keys(params).map(function (key) {
-        return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-      }).join('&');
-    }
-    xhr.send(params);
-  });
-}
-
-imgLoad = function(elem) {
-	var promises = [];
-	var imgs = elem.getElementsByTagName("img");
-	for (var i = 0; i < imgs.length; i++) {
-		promises.push(new Promise(function(resolve, reject) {
-			imgs[i].onload = function() { resolve(); }
-		}));
-	}
-	return Promise.allSettled(promises);	
-}
-
-includeHTML = function(elem) {
-	var promises = [];
-	var includes = elem.getElementsByTagName("div");
-	for (var i = 0; i < includes.length; i++) {
-		var file = includes[i].getAttribute("src");
-		if (file) {
-			promises.push(request({
-				method: "GET",
-				url: file,
-				pass: includes[i]
-			}).then(function (response) {
-				response.pass.innerHTML = response.text;
-				content = response.pass.childNodes;
-				var result = []
-				if (response.pass.parentNode != null) {
-					for (var j = 0; j < content.length; j++) {
-						result.push(imgLoad(content[j]));
-						var node = response.pass.parentNode.insertBefore(content[j], response.pass);
-						result.push(includeHTML(node));
-					}
-					response.pass.parentNode.removeChild(response.pass);
-				}
-
-				return Promise.allSettled(result);
-			}));
-		}
-	}
-
-	return Promise.allSettled(promises);
-};
-
 formatSection = function(section, id, type) {
 	elems = section.getElementsByTagName(type);
 	for (var i = 0; i < elems.length; i++) {
@@ -93,89 +7,81 @@ formatSection = function(section, id, type) {
 }
 
 formatAnchors = function() {
-	return new Promise(function(resolve, reject) {
-		var elems = document.getElementsByTagName("cite");
-		for (var i = 0; i < elems.length; i++) {
-			elems[i].innerHTML = "<div class=\"cite-ref\">[" + (i+1) + "]</div><div class=\"cite-txt\">" + elems[i].innerHTML + "</div>";
-			elems[i].setAttribute("ref-num", i+1);
+	var elems = document.getElementsByTagName("cite");
+	for (var i = 0; i < elems.length; i++) {
+		elems[i].innerHTML = "<div class=\"cite-ref\">[" + (i+1) + "]</div><div class=\"cite-txt\">" + elems[i].innerHTML + "</div>";
+		elems[i].setAttribute("ref-num", i+1);
+	}
+
+	elems = document.getElementsByClassName("equation");
+	for (var i = 0; i < elems.length; i++) {	
+		elems[i].setAttribute("ref-num", i+1);
+	}
+
+	elems = document.getElementsByTagName("figure");
+	var j = 1;
+	for (var i = 0; i < elems.length; i++) {
+		var text = elems[i].getElementsByTagName("figcaption");
+		if (text.length > 0) {
+			elems[i].setAttribute("ref-num", j);
+			j++;
 		}
+	}
 
-		elems = document.getElementsByClassName("equation");
-		for (var i = 0; i < elems.length; i++) {	
-			elems[i].setAttribute("ref-num", i+1);
-		}
+	elems = document.getElementsByTagName("table");
+	for (var i = 0; i < elems.length; i++) {
+		elems[i].setAttribute("ref-num", i+1);
+	}
 
-		elems = document.getElementsByTagName("figure");
-		var j = 1;
-		for (var i = 0; i < elems.length; i++) {
-			var text = elems[i].getElementsByTagName("figcaption");
-			if (text.length > 0) {
-				elems[i].setAttribute("ref-num", j);
-				j++;
-			}
-		}
-
-		elems = document.getElementsByTagName("table");
-		for (var i = 0; i < elems.length; i++) {
-			elems[i].setAttribute("ref-num", i+1);
-		}
-
-		/*elems = document.getElementsByTagName("section");
-		for (var i = 0; i < elems.length; i++) {
-			elems[i].setAttribute("ref-num", i+1);
-			formatSection(elems[i], (i+1), "subsection");
-		}*/
-
-		resolve();
-	});
+	/*elems = document.getElementsByTagName("section");
+	for (var i = 0; i < elems.length; i++) {
+		elems[i].setAttribute("ref-num", i+1);
+		formatSection(elems[i], (i+1), "subsection");
+	}*/
 };
 
 formatLinks = function() {
-	return new Promise(function(resolve, reject) {
-		var links = document.getElementsByTagName("a");
-		for (var i = 0; i < links.length; i++) {
-			raw = links[i].getAttribute("href");
+	var links = document.getElementsByTagName("a");
+	for (var i = 0; i < links.length; i++) {
+		raw = links[i].getAttribute("href");
 
-			if (raw && raw.charAt(0) == '#') {
-				urls = raw.split('-#');
-				var ref = [null, null];
-				if (urls[0])
-					ref[0] = document.querySelector(urls[0]);
-				if (urls[1]) {
-					ref[1] = document.querySelector('#' + urls[1]);
-					links[i].setAttribute("href", urls[0]);
+		if (raw && raw.charAt(0) == '#') {
+			urls = raw.split('-#');
+			var ref = [null, null];
+			if (urls[0])
+				ref[0] = document.querySelector(urls[0]);
+			if (urls[1]) {
+				ref[1] = document.querySelector('#' + urls[1]);
+				links[i].setAttribute("href", urls[0]);
+			}
+
+			if (ref[0] && links[i].innerHTML.length == 0) {
+				var tag = ref[0].tagName.toLowerCase();
+				var cls = ref[0].className.toLowerCase();
+				var id = ref[0].getAttribute('ref-num');
+				
+				if (ref[1]) {
+					id += "-" + ref[1].getAttribute('ref-num');
 				}
 
-				if (ref[0] && links[i].innerHTML.length == 0) {
-					var tag = ref[0].tagName.toLowerCase();
-					var cls = ref[0].className.toLowerCase();
-					var id = ref[0].getAttribute('ref-num');
-					
-					if (ref[1]) {
-						id += "-" + ref[1].getAttribute('ref-num');
-					}
-
-					if (tag == "cite") {
-						links[i].innerHTML += "["+id+"]";
-					}
-					else if (cls == "equation") {
-						links[i].innerHTML += "("+id+")";
-					}
-					else if (tag == "figure") {
-						links[i].innerHTML += "Fig. "+id;
-					}
-					else if (tag == "table") {
-						links[i].innerHTML += "Table "+id;
-					}
-					else {
-						links[i].innerHTML += "[??]";
-					}
+				if (tag == "cite") {
+					links[i].innerHTML += "["+id+"]";
+				}
+				else if (cls == "equation") {
+					links[i].innerHTML += "("+id+")";
+				}
+				else if (tag == "figure") {
+					links[i].innerHTML += "Fig. "+id;
+				}
+				else if (tag == "table") {
+					links[i].innerHTML += "Table "+id;
+				}
+				else {
+					links[i].innerHTML += "[??]";
 				}
 			}
 		}
-
-		resolve();
-	});
+	}
 };
 
 pixelsPerInch = function(elem) {
@@ -470,84 +376,68 @@ pageFlowSection = function(el, off) {
 }
 
 pageFlow = function() {
-	return new Promise(function(resolve, reject) {
-		var sections = document.getElementsByTagName("section");
-		var offset = 1;
-		for (var i = 0; i < sections.length; i++) {
-			offset = pageFlowSection(sections[i], offset);
-		}
-
-		resolve();
-	});
+	var sections = document.getElementsByTagName("section");
+	var offset = 1;
+	for (var i = 0; i < sections.length; i++) {
+		offset = pageFlowSection(sections[i], offset);
+	}
 }
 
 pageTableOfContents = function() {
-	return new Promise(function(resolve, reject) {
-		var toc = document.getElementById("table-of-contents");
-		if (toc != null) {
-			var items = toc.getElementsByClassName("toc-elem");
-			for (var i = 0; i < items.length; i++) {
-				var linkElems = items[i].getElementsByTagName("a");
-				var pageElems = items[i].getElementsByClassName("toc-page");
-				if (linkElems.length > 0 && pageElems.length > 0) {
-					var name = linkElems[0].getAttribute('href');
-					var h1 = document.getElementsByName(name.substr(1));
-					if (h1.length > 0) {
-						var page = h1[0].parentNode.getAttribute("page");
-						pageElems[0].appendChild(document.createTextNode(Math.floor(page)));
-					}
+	var toc = document.getElementById("table-of-contents");
+	if (toc != null) {
+		var items = toc.getElementsByClassName("toc-elem");
+		for (var i = 0; i < items.length; i++) {
+			var linkElems = items[i].getElementsByTagName("a");
+			var pageElems = items[i].getElementsByClassName("toc-page");
+			if (linkElems.length > 0 && pageElems.length > 0) {
+				var name = linkElems[0].getAttribute('href');
+				var h1 = document.getElementsByName(name.substr(1));
+				if (h1.length > 0) {
+					var page = h1[0].parentNode.getAttribute("page");
+					pageElems[0].appendChild(document.createTextNode(Math.floor(page)));
 				}
 			}
 		}
-
-		resolve();
-	});
+	}
 }
 
 pageListOfFigures = function() {
-	return new Promise(function(resolve, reject) {
-		var toc = document.getElementById("list-of-figures");
-		if (toc != null) {
-			var items = toc.getElementsByClassName("toc-elem");
-			for (var i = 0; i < items.length; i++) {
-				var linkElems = items[i].getElementsByTagName("a");
-				var pageElems = items[i].getElementsByClassName("toc-page");
-				if (linkElems.length > 0 && pageElems.length > 0) {
-					var name = linkElems[0].getAttribute('href');
-					var fig = document.getElementById(name.substr(1));
-					if (fig != null) {
-						var page = fig.getAttribute("page");
-						pageElems[0].appendChild(document.createTextNode(Math.floor(page)));
-					}
+	var toc = document.getElementById("list-of-figures");
+	if (toc != null) {
+		var items = toc.getElementsByClassName("toc-elem");
+		for (var i = 0; i < items.length; i++) {
+			var linkElems = items[i].getElementsByTagName("a");
+			var pageElems = items[i].getElementsByClassName("toc-page");
+			if (linkElems.length > 0 && pageElems.length > 0) {
+				var name = linkElems[0].getAttribute('href');
+				var fig = document.getElementById(name.substr(1));
+				if (fig != null) {
+					var page = fig.getAttribute("page");
+					pageElems[0].appendChild(document.createTextNode(Math.floor(page)));
 				}
 			}
 		}
-
-		resolve();
-	});
+	}
 }
 
 pageListOfTables = function() {
-	return new Promise(function(resolve, reject) {
-		var toc = document.getElementById("list-of-tables");
-		if (toc != null) {
-			var items = toc.getElementsByClassName("toc-elem");
-			for (var i = 0; i < items.length; i++) {
-				var linkElems = items[i].getElementsByTagName("a");
-				var pageElems = items[i].getElementsByClassName("toc-page");
-				if (linkElems.length > 0 && pageElems.length > 0) {
-					var name = linkElems[0].getAttribute('href');
-					var fig = document.getElementById(name.substr(1));
-					if (fig != null) {
-						var page = fig.getAttribute("page");
-						pageElems[0].appendChild(document.createTextNode(Math.floor(page)));
-					}
+	var toc = document.getElementById("list-of-tables");
+	if (toc != null) {
+		var items = toc.getElementsByClassName("toc-elem");
+		for (var i = 0; i < items.length; i++) {
+			var linkElems = items[i].getElementsByTagName("a");
+			var pageElems = items[i].getElementsByClassName("toc-page");
+			if (linkElems.length > 0 && pageElems.length > 0) {
+				var name = linkElems[0].getAttribute('href');
+				var fig = document.getElementById(name.substr(1));
+				if (fig != null) {
+					var page = fig.getAttribute("page");
+					pageElems[0].appendChild(document.createTextNode(Math.floor(page)));
 				}
 			}
 		}
-
-		resolve();
-	});
+	}
 }
 
 contentsOfSection = function(level, elem, ins, ppi) {
@@ -615,158 +505,142 @@ contentsOfSection = function(level, elem, ins, ppi) {
 
 
 tableOfContents = function() {
-	return new Promise(function(resolve, reject) {
-		var toc = document.getElementById("table-of-contents");
-		if (toc != null) {
-			contentsOfSection(1, document, toc, ppi);
-		}
-
-		resolve();
-	});
+	var toc = document.getElementById("table-of-contents");
+	if (toc != null) {
+		contentsOfSection(1, document, toc, ppi);
+	}
 }
 
 listOfFigures = function() {
-	return new Promise(function(resolve, reject) {
-		var toc = document.getElementById("list-of-figures");
-		if (toc != null) {
-			var figures = document.getElementsByTagName("figure");
-			if (figures.length > 0) {
-				var ol = document.createElement("ol");
-				for (var i = 0; i < figures.length; i++) {
-					var text = figures[i].getElementsByTagName("figcaption");
-					if (text.length > 0) {
-						text = text[0].textContent ? text[0].textContent : text[0].innerText;
-						var id = figures[i].getAttribute('id');
+	var toc = document.getElementById("list-of-figures");
+	if (toc != null) {
+		var figures = document.getElementsByTagName("figure");
+		if (figures.length > 0) {
+			var ol = document.createElement("ol");
+			for (var i = 0; i < figures.length; i++) {
+				var text = figures[i].getElementsByTagName("figcaption");
+				if (text.length > 0) {
+					text = text[0].textContent ? text[0].textContent : text[0].innerText;
+					var id = figures[i].getAttribute('id');
 
-						var li = document.createElement("li");
-						var cont = document.createElement("div");
-						cont.setAttribute("class", "toc-elem");
-						var chap = document.createElement("div");
-						var textNode;
-						if (text != null) {
-							textNode = document.createTextNode(text);
-						} else {
-							textNode = document.createTextNode("Anonymous");
-						}
-						if (id != null) {
-							var link = document.createElement("a");
-							link.appendChild(textNode);
-							
-							link.setAttribute("href", "#" + id);
-							link.setAttribute("class", "xref");
-							chap.appendChild(link);
-						} else {
-							chap.appendChild(textNode);
-						}
-						cont.appendChild(chap);
-						var pagenum = document.createElement("div");
-						pagenum.setAttribute("class", "toc-page");
-						cont.appendChild(pagenum);
-						li.appendChild(cont); 
-						ol.appendChild(li);
-					}
-				}
-				
-				toc.appendChild(ol);
-			}
-		}
-
-		resolve();
-	});
-}
-
-listOfTables = function() {
-	return new Promise(function(resolve, reject) {
-		var toc = document.getElementById("list-of-tables");
-		if (toc != null) {
-			var tables = document.getElementsByTagName("table");
-			if (tables.length > 0) {
-				var ol = document.createElement("ol");
-				for (var i = 0; i < tables.length; i++) {
-					var text = tables[i].getElementsByTagName("caption");
-					if (text.length > 0) {
-						text = text[0].textContent ? text[0].textContent : text[0].innerText;
-						var id = tables[i].getAttribute('id');
-
-						var li = document.createElement("li");
-						var cont = document.createElement("div");
-						cont.setAttribute("class", "toc-elem");
-						var chap = document.createElement("div");
-						var textNode;
-						if (text != null) {
-							textNode = document.createTextNode(text);
-						} else {
-							textNode = document.createTextNode("Anonymous");
-						}
-						if (id != null) {
-							var link = document.createElement("a");
-							link.appendChild(textNode);
-							
-							link.setAttribute("href", "#" + id);
-							link.setAttribute("class", "xref");
-							chap.appendChild(link);
-						} else {
-							chap.appendChild(textNode);
-						}
-						cont.appendChild(chap);
-						var pagenum = document.createElement("div");
-						pagenum.setAttribute("class", "toc-page");
-						cont.appendChild(pagenum);
-						li.appendChild(cont); 
-						ol.appendChild(li);
-					}
-				}
-			
-				toc.appendChild(ol);
-			}
-		}
-
-		resolve();
-	});
-}
-
-listOfAbbreviations = function() {
-	return new Promise(function(resolve, reject) {
-		var toc = document.getElementById("list-of-abbreviations");
-		if (toc != null) {
-			var abbr_elems = document.getElementsByTagName("abbr");
-			if (abbr_elems.length > 0) {
-				var abbrs = new Map;
-				for (var i = 0; i < abbr_elems.length; i++) {
-					var page = abbr_elems[i].getAttribute("title");
-					var text = abbr_elems[i].textContent ? abbr_elems[i].textContent : abbr_elems[i].innerText;
-					abbrs.set(text, page);
-				}
-
-				keys = Array.from(abbrs.keys());
-				keys.sort();
-				var ol = document.createElement("ul");
-				for (var i = 0; i < keys.length; i++) {
 					var li = document.createElement("li");
 					var cont = document.createElement("div");
 					cont.setAttribute("class", "toc-elem");
 					var chap = document.createElement("div");
 					var textNode;
 					if (text != null) {
-						textNode = document.createTextNode(keys[i]);
+						textNode = document.createTextNode(text);
 					} else {
 						textNode = document.createTextNode("Anonymous");
 					}
-					chap.appendChild(textNode);
+					if (id != null) {
+						var link = document.createElement("a");
+						link.appendChild(textNode);
+						
+						link.setAttribute("href", "#" + id);
+						link.setAttribute("class", "xref");
+						chap.appendChild(link);
+					} else {
+						chap.appendChild(textNode);
+					}
 					cont.appendChild(chap);
 					var pagenum = document.createElement("div");
 					pagenum.setAttribute("class", "toc-page");
-					pagenum.appendChild(document.createTextNode(abbrs.get(keys[i])));
 					cont.appendChild(pagenum);
 					li.appendChild(cont); 
 					ol.appendChild(li);
 				}
-			
-				toc.appendChild(ol);
 			}
+			
+			toc.appendChild(ol);
 		}
+	}
+}
 
-		resolve();
-	});
+listOfTables = function() {
+	var toc = document.getElementById("list-of-tables");
+	if (toc != null) {
+		var tables = document.getElementsByTagName("table");
+		if (tables.length > 0) {
+			var ol = document.createElement("ol");
+			for (var i = 0; i < tables.length; i++) {
+				var text = tables[i].getElementsByTagName("caption");
+				if (text.length > 0) {
+					text = text[0].textContent ? text[0].textContent : text[0].innerText;
+					var id = tables[i].getAttribute('id');
+
+					var li = document.createElement("li");
+					var cont = document.createElement("div");
+					cont.setAttribute("class", "toc-elem");
+					var chap = document.createElement("div");
+					var textNode;
+					if (text != null) {
+						textNode = document.createTextNode(text);
+					} else {
+						textNode = document.createTextNode("Anonymous");
+					}
+					if (id != null) {
+						var link = document.createElement("a");
+						link.appendChild(textNode);
+						
+						link.setAttribute("href", "#" + id);
+						link.setAttribute("class", "xref");
+						chap.appendChild(link);
+					} else {
+						chap.appendChild(textNode);
+					}
+					cont.appendChild(chap);
+					var pagenum = document.createElement("div");
+					pagenum.setAttribute("class", "toc-page");
+					cont.appendChild(pagenum);
+					li.appendChild(cont); 
+					ol.appendChild(li);
+				}
+			}
+		
+			toc.appendChild(ol);
+		}
+	}
+}
+
+listOfAbbreviations = function() {
+	var toc = document.getElementById("list-of-abbreviations");
+	if (toc != null) {
+		var abbr_elems = document.getElementsByTagName("abbr");
+		if (abbr_elems.length > 0) {
+			var abbrs = new Map;
+			for (var i = 0; i < abbr_elems.length; i++) {
+				var page = abbr_elems[i].getAttribute("title");
+				var text = abbr_elems[i].textContent ? abbr_elems[i].textContent : abbr_elems[i].innerText;
+				abbrs.set(text, page);
+			}
+
+			keys = Array.from(abbrs.keys());
+			keys.sort();
+			var ol = document.createElement("ul");
+			for (var i = 0; i < keys.length; i++) {
+				var li = document.createElement("li");
+				var cont = document.createElement("div");
+				cont.setAttribute("class", "toc-elem");
+				var chap = document.createElement("div");
+				var textNode;
+				if (text != null) {
+					textNode = document.createTextNode(keys[i]);
+				} else {
+					textNode = document.createTextNode("Anonymous");
+				}
+				chap.appendChild(textNode);
+				cont.appendChild(chap);
+				var pagenum = document.createElement("div");
+				pagenum.setAttribute("class", "toc-page");
+				pagenum.appendChild(document.createTextNode(abbrs.get(keys[i])));
+				cont.appendChild(pagenum);
+				li.appendChild(cont); 
+				ol.appendChild(li);
+			}
+		
+			toc.appendChild(ol);
+		}
+	}
 }
 

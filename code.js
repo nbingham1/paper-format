@@ -916,10 +916,5 @@ Prism.hooks.add('after-highlight', function (env) {
 }());
 
 var loadCode = function() {
-	return new Promise(function(resolve, reject) {
-		Prism.highlightAll();
-		if (resolve) {
-			resolve();
-		}
-	});
+	Prism.highlightAll();
 }
