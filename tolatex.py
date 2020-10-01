@@ -532,8 +532,8 @@ def img2latex(tag, parent):
 					width = None
 
 			outsrc = outsrc.replace(".svg", ".pdf")
-			intime = os.path.getmtime(src)
-			outtime = os.path.getmtime(outsrc)
+			intime = os.path.getmtime(src) if os.path.exists(src) else 0
+			outtime = os.path.getmtime(outsrc) if os.path.exists(outsrc) else 0
 
 			if intime > outtime:
 				print("inkscape -D -z --file=\"" + src + "\" --export-pdf=\"" + outsrc + "\" --export-latex")
