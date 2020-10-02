@@ -116,20 +116,6 @@ pre {
 	vertical-align: top;
 }
 
-section.language-prs pre {
-	page-break-inside: auto;
-	break-inside: auto;
-}
-
-.code-block pre {
-	display: inline-block;
-	margin-left:3px;
-}
-
-.code-block pre:first-child {
-	margin-left:0px;
-}
-
 figure {
 	display: table;
 	page-break-inside: avoid;
@@ -564,5 +550,11 @@ cite {
 abbr {
 	border: none;
 	text-decoration: none;
+}
+
+pre.language-prs,
+code.language-prs {
+	page-break-inside: auto;
+	break-inside: auto;
 }
 

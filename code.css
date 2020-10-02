@@ -170,3 +170,12 @@ pre[class*="language-"] {
 	text-decoration: overline;
 }
 
+.code-block pre {
+	display: inline-block;
+	margin-left:3px;
+}
+
+.code-block pre:first-child {
+	margin-left:0px;
+}
+

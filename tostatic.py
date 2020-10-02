@@ -9,6 +9,126 @@ from lxml import etree
 from shutil import copyfile
 import importlib
 
+languageChp = [
+	('comment', [
+		r'(^|[^\\])\/\*[\s\S]*?\*\/',
+		r'(^|[^\\:])\/\/.*',
+	]),
+	('node_long', (r'\.{([^}]*)}', '\\1')),
+	('', [
+			(r'->',     '\u2192'),
+			(r'\|\|',   '\u2225'),
+			(r'\*\[',   '\u2217['),
+			(r'\\\[',   '['     ),
+			(r'\[\]',   '\u25AF'),
+			(r'\\\*',   '\u2022'),
+			(r'\\ring', '\u2E30'),
+			(r'~',      '\u00AC'),
+			(r'\&',     '\u2227'),
+			(r'\|',     '\u2228'),
+			(r'<=',     '\u2264'),
+			(r'>=',     '\u2265'),
+			(r'!=',     '\u2260'),
+			(r'==',     '='     ),
+			(r'([^\\]):([^=]|$)',    '\\1|\\2'),
+			(r'\\:',    ':'),
+			(r'\.\.\.', '\u2026'),
+			(r'\+(\s*(?:[\/;,:\]\)\u2225\u2192\u25AF\u2022\u2026\u2227\u2228\u2264\u2265\u2260=\n!\?*]|$))', '\u21BE\\1'),
+			(r'-(\s*(?:[\/;,:\]\)\u2225\u2192\u25AF\u2022\u2026\u2227\u2228\u2264\u2265\u2260=\n!\?*]|$))',  '\u21C2\\1')
+	]),
+	('node', (r'\.([a-zA-Z0-9_]+)', '\\1')),
+	('probe', (r'#([a-zA-Z0-9_][a-zA-Z0-9_]*)', '\\1')),
+	('logic', '\u00AC|\u2227|\u2228'),
+	('arithmetic', r'\+|-|\*|\/'),
+	('compare', '\u2264|\u2265|\u2260|=|<|>'),
+	('assign', '\u21BE|\u21C2|:='),
+	('channel', r'!|\?'),
+	('compose', '\u2225|;|,'),
+	('control', '\u2217\[|\[|\]|\||\u25AF|\u2192'),
+	('string', r'(["\'])(\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1'),
+	('keyword', r'\b(skip|null)\b'),
+	('boolean', r'\b(true|false)\b'),
+	('function', r'[a-z0-9_]+(?=\()'),
+	('number', r'\b-?(?:0x[\da-f]+|\d*\.?\d+(?:e[+-]?\d+)?)\b'),
+]
+
+languagePrs = [
+	('comment', [
+		r'(^|[^\\])\/\*[\s\S]*?\*\/',
+		r'(^|[^\\:])\/\/.*',
+	]),
+	('node_long', (r'\.{([^}]*)}', '\\1')),
+	('', [
+			(r'->', '\u2192'),
+			(r'~',  '\u00AC'),
+			(r'\&', '\u2227'),
+			(r'\|', '\u2228'),
+			(r'<=', '\u2264'),
+			(r'>=', '\u2265'),
+			(r'!=', '\u2260'),
+			(r'==', '='     ),
+			(r'\.\.\.', '\u2026'),
+			(r'\+(\s*(?:[\/\n]|$))', '\u21BE\\1'),
+			(r'-(\s*(?:[\/\n]|$))',  '\u21C2\\1'),
+	]),
+	('node', (r'\.([a-zA-Z0-9_]*)', '\\1')),
+	('logic', '\u00AC|\u2227|\u2228'),
+	('arithmetic', r'\+|-|\*|\/'),
+	('compare', '\u2264|\u2265|\u2260|=|<|>'),
+	('assign', '\u21BE|\u21C2|:='),
+	('string', r'(["\'])(\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1'),
+	('keyword', r'\b(skip|null)\b'),
+	('boolean', r'\b(true|false)\b'),
+	('number', r'\b-?(?:0x[\da-f]+|\d*\.?\d+(?:e[+-]?\d+)?)\b'),
+]
+
+def doSub(code, label, exp):
+	i = len(code[0].content)-1
+	while i >= 0:
+		if isinstance(code[0].content[i], html.Tag):
+			doSub([code[0].content[i]], label, exp)
+		elif isinstance(exp, tuple):
+			rep = exp[1]
+			matches = re.finditer(exp[0], code[0].content[i], flags=re.MULTILINE | re.UNICODE)
+			if matches:
+				for m in reversed(list(matches)):
+					if label:
+						code[0].content = code[0].content[0:i] + [code[0].content[i][0:m.start()], html.Tag("span", [m.expand(rep)], {"class":"token " + label}, inline=True), code[0].content[i][m.end():]] + code[0].content[i+1:]
+					else:
+						code[0].content[i] = code[0].content[i][0:m.start()] + m.expand(rep) + code[0].content[i][m.end():]
+		elif label:
+			matches = re.finditer(exp, code[0].content[i], flags=re.MULTILINE | re.UNICODE)
+			if matches:
+				for m in reversed(list(matches)):
+					code[0].content = code[0].content[0:i] + [code[0].content[i][0:m.start()], html.Tag("span", [code[0].content[i][m.start():m.end()]], {"class":"token " + label}, inline=True), code[0].content[i][m.end():]] + code[0].content[i+1:]
+		i -= 1
+
+def unescape(elem):
+	for i in range(0, len(elem[0].content)):
+		if isinstance(elem[0].content[i], html.Tag):
+			unescape([elem[0].content[i]])
+		elif not isinstance(elem[0].content[i], html.STag):
+			elem[0].content[i] = elem[0].content[i].replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+
+def escape(elem):
+	for i in range(0, len(elem[0].content)):
+		if isinstance(elem[0].content[i], html.Tag):
+			escape([elem[0].content[i]])
+		elif not isinstance(elem[0].content[i], html.STag):
+			elem[0].content[i] = elem[0].content[i].replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
+
+def convert(code, lang):
+	if code[0].content[0][0] == '\n':
+		code[0].content[0] = code[0].content[0][1:]
+	unescape(code);
+	for label, exp in lang:
+		if isinstance(exp, list):
+			for e in exp:
+				doSub(code, label, e)
+		else:
+			doSub(code, label, exp)
+	escape(code)
+
 figure_map = {}
 ref_map = {}
 table_map = {}
@@ -35,11 +155,28 @@ def load_file(path):
 	parser = eparser.close()
 	return parser.syntax
 
+def getFlags(parent, idx, flags):
+	f = flags.copy()
+	newcls = []
+	if "class" in parent[0].content[idx].attrs:
+		cls = parent[0].content[idx].attrs["class"].split(" ")
+		for c in cls:
+			if c.startswith("language-"):
+				f["lang"] = c[9:]
+			else:
+				newcls.append(c)
+	if "lang" in f:
+		newcls.append("language-" + f["lang"])
+	if newcls:
+		parent[0].content[idx].attrs["class"] = " ".join(newcls)
+
+	return f
+
 def div2static(parent, idx, flags):
 	if len(parent) > 0 and idx < len(parent[0].content):
 		if "src" in parent[0].content[idx].attrs:
 			load = load_file(parent[0].content[idx].attrs["src"]).content[0].content[0]
-			tostatic([load], flags)
+			tostatic([load], getFlags(parent, idx, flags))
 			parent[0].content[idx:idx+1] = load.content
 			return len(load.content)
 		else:
@@ -48,7 +185,7 @@ def div2static(parent, idx, flags):
 
 def figure2static(parent, idx, flags):
 	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
+		tostatic([parent[0].content[idx]], getFlags(parent, idx, flags))
 		if "id" in parent[0].content[idx].attrs:
 			fig_id = parent[0].content[idx].attrs["id"]
 			fig_num = len(figure_map)+1
@@ -65,7 +202,7 @@ def figure2static(parent, idx, flags):
 
 def table2static(parent, idx, flags):
 	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
+		tostatic([parent[0].content[idx]], getFlags(parent, idx, flags))
 		if "id" in parent[0].content[idx].attrs:
 			tab_id = parent[0].content[idx].attrs["id"]
 			tab_num = len(table_map)+1
@@ -82,7 +219,7 @@ def table2static(parent, idx, flags):
 
 def cite2static(parent, idx, flags):
 	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
+		tostatic([parent[0].content[idx]], getFlags(parent, idx, flags))
 		if "id" in parent[0].content[idx].attrs:
 			ref_id = parent[0].content[idx].attrs["id"]
 			ref_num = len(ref_map)+1
@@ -108,7 +245,7 @@ def cite2static(parent, idx, flags):
 
 def a2static(parent, idx, flags):
 	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
+		tostatic([parent[0].content[idx]], getFlags(parent, idx, flags))
 		if "href" in parent[0].content[idx].attrs:
 			href = parent[0].content[idx].attrs["href"]
 			if len(href) > 0 and href[0] == '#' and len(parent[0].content[idx].content) == 0:
@@ -140,7 +277,7 @@ def section2static(parent, idx, flags):
 	global loa_section
 
 	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
+		tostatic([parent[0].content[idx]], getFlags(parent, idx, flags))
 		if "id" in parent[0].content[idx].attrs:
 			sid = parent[0].content[idx].attrs["id"]
 			if sid == "table-of-contents":
@@ -155,8 +292,8 @@ def section2static(parent, idx, flags):
 
 def hN2static(parent, idx, flags):
 	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
-		f = flags.copy()
+		f = getFlags(parent, idx, flags)
+		tostatic([parent[0].content[idx]], f)
 		if "class" in parent[0].attrs:
 			cls = parent[0].attrs["class"].split(" ")
 			if "page-skip" in cls:
@@ -165,22 +302,42 @@ def hN2static(parent, idx, flags):
 				f["counter-skip"] = True
 			if "appendix" in cls:
 				f["appendix"] = True
-		section_titles.append([parent[0].content[idx], f])
-	return 1
 
-def default2static(parent, idx, flags):
-	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
+		section_titles.append([parent[0].content[idx], f])
 	return 1
 
 def abbr2static(parent, idx, flags):
 	if len(parent) > 0 and idx < len(parent[0].content):
-		tostatic([parent[0].content[idx]], flags)
+		tostatic([parent[0].content[idx]], getFlags(parent, idx, flags))
 		abbr = parent[0].content[idx].text()
 		title = ""
 		if "title" in parent[0].content[idx].attrs:
 			title = parent[0].content[idx].attrs["title"]
 		abbr_defs[abbr] = title
+	return 1
+
+def code2static(parent, idx, flags):
+	if len(parent) > 0 and idx < len(parent[0].content):
+		f = getFlags(parent, idx, flags)
+		if "lang" in f:
+			if f["lang"] == "prs":
+				convert([parent[0].content[idx]], languagePrs)
+			elif f["lang"] == "chp":
+				convert([parent[0].content[idx]], languageChp)
+			else:
+				tostatic([parent[0].content[idx]], f)
+		else:
+			tostatic([parent[0].content[idx]], f)
+	return 1
+
+def script2static(parent, idx, flags):
+	print(parent[0].content[idx])
+	del parent[0].content[idx]
+	return 0
+
+def default2static(parent, idx, flags):
+	if len(parent) > 0 and idx < len(parent[0].content):
+		tostatic([parent[0].content[idx]], getFlags(parent, idx, flags))
 	return 1
 
 handlers = {
@@ -194,12 +351,12 @@ handlers = {
 	'h6': hN2static,
 	'h7': hN2static,
 	'abbr': abbr2static,
-	#'pre': pre2static,
-	#'code': code2static,
+	'code': code2static,
 	'a': a2static,
 	'cite': cite2static,
 	'table': table2static,
 	'figure': figure2static,
+	'script': script2static,
 }
 
 def listOfAbbrev():
