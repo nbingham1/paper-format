@@ -155,6 +155,7 @@ def load(a, b):
 	global process_usr
 	tolatex = a
 	process_usr = b
+	return {}
 
 def setDocument():
 	return "\\documentclass[phd,cornellheadings]{cornell}"
