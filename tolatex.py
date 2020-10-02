@@ -522,7 +522,10 @@ def img2latex(tag, parent):
 				width = tag.attrs["style"].get("width")
 				if not width:
 					width = tag.attrs["style"].get("max-width")
-				if "%" in width:
+				
+				if "," in width:
+					width = float(width[width.index(",")+1:-2])/100.0
+				elif "%" in width:
 					width = float(width[0:-1])/100.0
 				else:
 					width = None
