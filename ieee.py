@@ -54,6 +54,17 @@ def _abstract(tag, parent):
 		result << keys
 	return result
 
+def _appendix(tag, parent):
+	result = latex.Group()
+	process_usr(tag, result, parent)
+	if 'skip' in result.usr and result.usr['skip']:
+		result.usr['skip'].append('h1')
+	else:
+		result.usr['skip'] = ['h1']
+	result << latex.Cmd("appendix")
+	result << tolatex(tag.content, result)
+	return result
+
 def _references(tag, parent):
 	result = latex.Env("thebibliography", [len(tag.content)])
 	process_usr(tag, result, parent)
@@ -88,6 +99,7 @@ classHandlers = {
 	'title': _title,
 	'author': _author,
 	'authors': _authors,
+	'appendix': _appendix,
 	'bio': _bio,
 }
 

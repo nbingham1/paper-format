@@ -629,6 +629,7 @@ handlers = {
 	'i': i2latex,
 	'abbr': abbr2latex,
 	'style': ignore,
+	'script': ignore,
 }
 
 def tolatex(tag, parent):
