@@ -314,12 +314,12 @@ small { font-size: 0.8rem; }
 .page-break-after { page-break-after: always; }
 .page-break-before { page-break-after: always; }
 
-.abstract {
+#abstract {
 	font-size: 0.9rem;
 	font-weight: bold;
 }
 
-.abstract p {
+#abstract p {
 	line-height: 1.15;
 	margin-bottom: 1.2rem;
 }
