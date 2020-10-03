@@ -442,7 +442,7 @@ small { font-size: 0.8rem; }
 .col-break-before { break-after: always; }
 
 .page-break-after { page-break-after: always; }
-.page-break-before { page-break-after: always; }
+.page-break-before { page-break-before: always; }
 
 ul {
 	text-align: justify;

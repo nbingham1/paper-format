@@ -473,8 +473,23 @@ def td2latex(tag, parent):
 		return cell
 
 def figure2latex(tag, parent):
+	width = None
+	if "style" in tag.attrs and tag.attrs["style"]:
+		width = tag.attrs["style"].get("width")
+		if not width:
+			width = tag.attrs["style"].get("max-width")
+		if "%" in width:
+			width = float(width[0:-1])/100.0
+		else:
+			width = None	
+
 	figure = latex.Env("figure", args=[("ht!",)])
 	process_usr(tag, figure, parent)
+	if width:
+		if 'width' in figure.usr:
+			figure.usr['width'] *= width
+		else:
+			figure.usr['width'] = width
 	figure << latex.Cmd("centering")
 	figure << latex.Cmd("advance\\leftskip-1cm")
 	figure << latex.Cmd("advance\\rightskip-1cm")
@@ -521,15 +536,17 @@ def img2latex(tag, parent):
 					raise
 
 		if ".svg" in src:
-			width = None
+			width = 1.0
+			if 'width' in parent.usr:
+				width = parent.usr['width']
+
 			if "style" in tag.attrs and tag.attrs["style"]:
-				width = tag.attrs["style"].get("width")
-				if not width:
-					width = tag.attrs["style"].get("max-width")
-				if "%" in width:
-					width = float(width[0:-1])/100.0
-				else:
-					width = None
+				attr = tag.attrs["style"].get("width")
+				if not attr:
+					attr = tag.attrs["style"].get("max-width")
+
+				if "%" in attr:
+					width *= float(attr[0:-1])/100.0
 
 			outsrc = outsrc.replace(".svg", ".pdf")
 			intime = os.path.getmtime(src) if os.path.exists(src) else 0
