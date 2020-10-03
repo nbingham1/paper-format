@@ -11,7 +11,7 @@ body {
 	font-family: "Times New Roman", Times, serif;
 	hyphens: none;
 	margin: 0% 0% 0% 0%;
-	counter-reset: section figure_id table_id code_id;
+	counter-reset: section_id subsection_id subsubsection_id figure_id table_id code_id;
 }
 
 .article-body {
@@ -173,66 +173,25 @@ h1, h2, h3, h4, h5, h6 {
 	font-weight: normal;
 	hyphens: none; }
 
-h1:not(.counter-skip)::before,
-h2:not(.counter-skip)::before,
-h3:not(.counter-skip)::before,
-h4:not(.counter-skip)::before,
-h5:not(.counter-skip)::before,
-h6:not(.counter-skip)::before {
-	margin-right: 0.5rem; }
+section { counter-reset: subsection_id; }
+subsection { counter-reset: subsubsection_id; }
+section:not(.counter-skip) { counter-increment: section_id; }
+subsection:not(.counter-skip) { counter-increment: subsection_id; }
+subsubsection:not(.counter-skip) { counter-increment: subsubsection_id; }
+section.counter-reset { counter-reset: section_id subsection_id; }
+subsection.counter-reset { counter-reset: subsection_id subsubsection_id; }
 
-.counter-skip h1::before,
-.counter-skip h2::before,
-.counter-skip h3::before,
-.counter-skip h4::before,
-.counter-skip h5::before,
-.counter-skip h6::before {
-	content: "" !important;
-	margin-right: 0 !important; }
+section:not(.counter-skip) > h1::before {
+	margin-right: 0.5rem;
+	content: "" "" counter(section_id, upper-roman) "."; }
 
-h1:not(.counter-skip) { counter-increment: section; }
-h2:not(.counter-skip) { counter-increment: subsection; }
-h3:not(.counter-skip) { counter-increment: subsubsection; }
-h4:not(.counter-skip) { counter-increment: subsubsection; }
-h5:not(.counter-skip) { counter-increment: subsubsubsection; }
-h6:not(.counter-skip) { counter-increment: subsubsubsubsection; }
-h1.counter-reset { counter-increment: section; }
-h2.counter-reset { counter-increment: subsection; }
-h3.counter-reset { counter-increment: subsubsection; }
-h4.counter-reset { counter-increment: subsubsection; }
-h5.counter-reset { counter-increment: subsubsubsection; }
-h6.counter-reset { counter-increment: subsubsubsubsection; }
+subsection:not(.counter-skip) > h2::before {
+	margin-right: 0.5rem;
+	content: "" "" counter(subsection_id, upper-alpha) "."; }
 
-h1:not(.counter-skip):not(.appendix):not(#references)::before {
-	content: "" "" counter(section, upper-roman) "."; }
-
-h2:not(.counter-skip):not(.appendix)::before {
-	content: "" "" counter(subsection, upper-alpha) "."; }
-
-h3:not(.counter-skip)::before {
-	content: "" "" counter(subsubsection, decimal) "."; }
-
-h4:not(.counter-skip)::before {
-	content: "" "" counter(subsubsection, lower-alpha) "."; }
-
-h5:not(.counter-skip)::before {
-	content: "" "" counter(subsubsubsection, upper-roman) "."; }
-
-h6:not(.counter-skip)::before {
-	content: "" "" counter(subsubsubsubsection, upper-roman) "."; }
-
-h1.appendix:not(.counter-skip)::before {
-	content: "" !important;
-	margin-right: 0 !important;
-}
-
-h2.appendix:not(.counter-skip)::before {
-	content: "" counter(subsection, upper-alpha) "."; }
-
-h1#references:not(.counter-skip)::before {
-	content: "" !important;
-	margin-right: 0 !important;
-}
+subsubsection:not(.counter-skip) > h3::before {
+	margin-right: 0.5rem;
+	content: "" "" counter(subsubsection_id, decimal) "."; }
 
 h1 {
 	font-size: 1.2rem;
@@ -389,13 +348,13 @@ ol ol {
 	margin: 0 0 0 0;
 }
 
-.title {
+header > h1 {
 	font-size: 2.4rem;
 	font-variant: normal;
 	margin-top: 0;
 	margin-bottom: 2.0rem; }
 
-.subtitle {
+header > h2 {
 	font-size: 1.4rem;
 	font-style: normal;
 	font-weight: normal;
