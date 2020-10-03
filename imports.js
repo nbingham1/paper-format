@@ -1,6 +1,6 @@
-function waitFor(f, ...args) {
+function waitFor(f) {
 	return new Promise(function(resolve, reject) {
-		f.call(..args);
+		f.call();
 		resolve();
 	});
 }

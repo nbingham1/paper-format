@@ -21,6 +21,10 @@ latex_unresolved = {}
 latex_outpath = ""
 latex_module = None
 
+cfg = {
+	'section': -1
+}
+
 def escape(content, space=True):
 	if isinstance(content, list):
 		return [escape(item, space) for item in content]
@@ -46,6 +50,8 @@ def expand(s, grps):
 	return s
 
 def convert(matches, src):
+	if src and src[0] == '\n':
+		src = src[1:]
 	result = ""
 	i = 0
 	while i < len(src):
@@ -120,7 +126,8 @@ def convert_code(content, lang, caption=False):
 		result = convert(matches, src)
 	else:
 		if not lang:
-			print(src)
+			print("Warning: language not defined for code block.")
+			print("\"" + src + "\"")
 			print()
 		result = src
 	return result
@@ -154,7 +161,7 @@ def process_usr(tag, result, parent, is_arg=False):
 		result.usr["lang"] = lang
 
 def default2latex(tag, parent):
-	if tag.name not in ["section", "subsection", "subsubsection", "div", "document", "html", "body"]:
+	if tag.name not in ["section", "subsection", "subsubsection", "div", "document", "html", "body", "span"]:
 		print(tag.name)
 
 	result = latex.Group()
@@ -187,10 +194,12 @@ def header2latex(tag, parent):
 	return result
 
 def hN2latex(tag, parent):
+	global cfg
+
 	index = int(tag.name[1:])
 	result = latex.Group()
 
-	section = latex.Section("", index-1)
+	section = latex.Section("", index+cfg['section'])
 	process_usr(tag, section, parent)
 	if 'pass' in section.usr:
 		section.usr['pass'].append('a')
@@ -206,22 +215,10 @@ def hN2latex(tag, parent):
 	return result
 
 def p2latex(tag, parent):
-	if "abstract" in parent.usr and len(tag.content) > 0 and isinstance(tag.content[0], html.Tag) and len(tag.content[0].content) > 0:
-		if tag.content[0].content[0] == "Abstract":
-			result = latex.Env("abstract")
-			process_usr(tag, result, parent)
-			result << tolatex([tag.content[1][3:]] + tag.content[2:], result)
-			return result
-		elif tag.content[0].content[0] == "Keywords":
-			result = latex.Env("IEEEkeywords")
-			process_usr(tag, result, parent)
-			result << tolatex(tag.content[2:], result)
-			return result
-	else:
-		result = latex.Group(end="\n\n")
-		process_usr(tag, result, parent)
-		result << tolatex(tag.content, result)
-		return result;
+	result = latex.Group(end="\n\n")
+	process_usr(tag, result, parent)
+	result << tolatex(tag.content, result)
+	return result;
 
 def pre2latex(tag, parent):
 	result = latex.Group()
@@ -239,7 +236,6 @@ def code2latex(tag, parent):
 		result = latex.Env("lstlisting", args=[("mathescape",)])
 		process_usr(tag, result, parent)
 		result << convert_code(tag.content, lang, "arg" in parent.usr)
-		page << latex.Cmd("singlespacing")
 		page << result
 		pre = latex.Group()
 		pre << latex.Cmd("newbox", ["\\mybox"])
@@ -544,8 +540,10 @@ def img2latex(tag, parent):
 				attr = tag.attrs["style"].get("width")
 				if not attr:
 					attr = tag.attrs["style"].get("max-width")
-
-				if "%" in attr:
+				
+				if "," in attr:
+					width *= float(attr[attr.index(",")+1:-2])/100.0
+				elif "%" in attr:
 					width *= float(attr[0:-1])/100.0
 
 			outsrc = outsrc.replace(".svg", ".pdf")
@@ -647,6 +645,7 @@ handlers = {
 	'i': i2latex,
 	'abbr': abbr2latex,
 	'style': ignore,
+	'script': ignore,
 }
 
 def tolatex(tag, parent):
@@ -691,6 +690,8 @@ def tolatex(tag, parent):
 		return escape(tag, "figure" not in parent.usr)
 
 def convert_file(path):
+	global cfg
+
 	name = os.path.join(latex_outpath, os.path.splitext(path)[0])
 
 	#if len(latex_path) > 0:
@@ -731,6 +732,7 @@ def convert_file(path):
 				"\\usepackage{cite}",
 				"\\usepackage{makecell}",
 				"\\usepackage{multirow}",
+				] + (cfg['package'] if 'package' in cfg else []) + [
 				"\\soulregister\\cite7",
 				"\\soulregister\\ref7",
 				"\\soulregister\\pageref7",
@@ -755,11 +757,14 @@ def convert_file(path):
 				"}",
 				"\\urlstyle{same}",
 				"\\input{chp}",
-				"\\makeglossaries",
-				"\\input{glos}"
 			]), file=fptr)
 
 			result = tolatex(article[0], None)
+			if latex_abbr:
+				print("\n".join([
+					"\\makeglossaries",
+					"\\input{glos}"
+				]), file=fptr)
 		else:
 			result = tolatex(parser.syntax, None)
 		print(result, file=fptr)
@@ -776,7 +781,7 @@ for arg in sys.argv[1:]:
 			latex_outpath = arg
 		if flag == "-f" or flag == "--format":
 			latex_module = importlib.import_module(arg)
-			latex_module.load(tolatex, process_usr)
+			cfg.update(latex_module.load(tolatex, process_usr))
 		flag = None
 	elif "ref" in arg:
 		paths.insert(0, arg)
