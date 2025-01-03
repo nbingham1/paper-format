@@ -179,3 +179,8 @@ pre[class*="language-"] {
 	margin-left:0px;
 }
 
+figcaption code[class*="language-"] {
+	font-size: 0.8rem;
+	line-height: 0.8rem;
+}
+
